@@ -24,19 +24,73 @@ TFIDF_VECTORIZER: TfidfVectorizer | None = None
 
 
 def build_metadata(df: pd.DataFrame) -> pd.Series:
-    cols = [
-        "Perfume Name",
-        "Brand",
-        "Top Notes",
-        "Middle Notes",
-        "Base Notes",
-        "Main Accords",
-        "Season",
-    ]
-    acc = df[cols[0]].fillna("").astype(str).str.strip()
-    for c in cols[1:]:
-        acc = acc + " " + df[c].fillna("").astype(str).str.strip()
+    """
+    Concatenate fields for TF-IDF. Notes and accords are repeated so vibe queries
+    match ingredient language more strongly than name/brand tokens.
+    """
+    name = df["Perfume Name"].fillna("").astype(str).str.strip()
+    brand = df["Brand"].fillna("").astype(str).str.strip()
+    top = df["Top Notes"].fillna("").astype(str).str.strip()
+    middle = df["Middle Notes"].fillna("").astype(str).str.strip()
+    base = df["Base Notes"].fillna("").astype(str).str.strip()
+    accords = df["Main Accords"].fillna("").astype(str).str.strip()
+    season = df["Season"].fillna("").astype(str).str.strip()
+
+    # Name, brand, season: once; each note column ×3; main accords ×2
+    acc = (
+        name
+        + " "
+        + brand
+        + " "
+        + top
+        + " "
+        + top
+        + " "
+        + top
+        + " "
+        + middle
+        + " "
+        + middle
+        + " "
+        + middle
+        + " "
+        + base
+        + " "
+        + base
+        + " "
+        + base
+        + " "
+        + accords
+        + " "
+        + accords
+        + " "
+        + season
+    )
     return acc.str.replace(r"\s+", " ", regex=True).str.strip()
+
+
+def _rating_count_column(df: pd.DataFrame) -> str | None:
+    for c in df.columns:
+        if str(c).strip().lower() == "rating count":
+            return c
+    return None
+
+
+def filter_by_rating_count(df: pd.DataFrame, min_count: int = 5) -> pd.DataFrame:
+    """Drop rows with fewer than min_count ratings when a Rating Count column exists."""
+    col = _rating_count_column(df)
+    if col is None:
+        return df
+    n_before = len(df)
+    raw = df[col].astype(str).str.replace(",", "", regex=False).str.strip()
+    raw = raw.replace({"": pd.NA, "nan": pd.NA, "None": pd.NA})
+    nums = pd.to_numeric(raw, errors="coerce")
+    df = df.loc[nums >= min_count].reset_index(drop=True)
+    print(
+        f"Rating filter ({col} >= {min_count}): {n_before} -> {len(df)} rows "
+        f"({n_before - len(df)} removed)"
+    )
+    return df
 
 
 def resolve_perfume_index(df: pd.DataFrame, query: str) -> int | None:
@@ -174,6 +228,7 @@ def train_and_save(base_dir: str | Path | None = None) -> None:
     base = Path(base_dir) if base_dir else Path(__file__).resolve().parent
     csv_path = base / DATA_CSV
     df = pd.read_csv(csv_path).reset_index(drop=True)
+    df = filter_by_rating_count(df, min_count=5)
     df["metadata"] = build_metadata(df)
 
     vectorizer = TfidfVectorizer(

@@ -5,6 +5,7 @@ Flask app: instant search API backed by TF-IDF + KNN recommendations.
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -43,7 +44,7 @@ def _image_search_url(brand, perfume_name: str) -> str:
     b = _clean_brand(brand)
     n = str(perfume_name).strip()
     q = f"{b} {n} perfume bottle".strip()
-    return "https://www.google.com/search?" + urlencode({"q": q, "tbm": "isch"})
+    return "https://www.google.com/search?" + urlencode({"q": q})
 
 
 def _prepare_results(raw: list[dict]) -> list[dict]:
@@ -86,6 +87,13 @@ def search():
         raw = get_recommendations(query, gender_filter=gender, k=limit)
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 503
+
+    for r in raw:
+        pn = r.get("perfume_name")
+        if pn is not None:
+            r["perfume_name"] = re.sub(
+                r"([a-z])(for\s)", r"\1 \2", str(pn), flags=re.IGNORECASE
+            )
 
     return jsonify(
         {
