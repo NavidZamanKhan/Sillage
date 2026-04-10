@@ -78,7 +78,9 @@ def search():
     limit = min(limit, 100)
 
     if not query:
-        return jsonify({"query": query, "gender": gender, "limit": limit, "results": []})
+        return jsonify(
+            {"query": query, "gender": gender, "limit": limit, "results": []}
+        )
 
     try:
         raw = get_recommendations(query, gender_filter=gender, k=limit)
@@ -100,3 +102,6 @@ def _load_models() -> None:
 
 
 _load_models()
+
+if __name__ == "__main__":
+    app.run(debug=True)
