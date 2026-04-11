@@ -22,6 +22,169 @@ PERFUME_DF: pd.DataFrame | None = None
 NN_MODEL: NearestNeighbors | None = None
 TFIDF_VECTORIZER: TfidfVectorizer | None = None
 
+# Famous / sought-after houses: used to rank neighbors (VIP first, then similarity).
+VIP_BRANDS: tuple[str, ...] = (
+    "Acqua di Parma",
+    "Al Rehab",
+    "Amouage",
+    "Arabian Oud",
+    "Armani",
+    "Azzaro",
+    "Bond No. 9",
+    "Bond No 9",
+    "Bottega Veneta",
+    "Burberry",
+    "Bvlgari",
+    "By Kilian",
+    "Byredo",
+    "Calvin Klein",
+    "Carolina Herrera",
+    "Caron",
+    "Cartier",
+    "Celine",
+    "Chanel",
+    "Chloé",
+    "Chloe",
+    "Christian Dior",
+    "Clarins",
+    "Clive Christian",
+    "Coach",
+    "Creed",
+    "Davidoff",
+    "Diptyque",
+    "Dolce & Gabbana",
+    "Donna Karan",
+    "Dior",
+    "DSquared2",
+    "D.S. & Durga",
+    "Elizabeth Arden",
+    "Escada",
+    "Estée Lauder",
+    "Estee Lauder",
+    "Etat Libre d'Orange",
+    "Fendi",
+    "Frederic Malle",
+    "Frédéric Malle",
+    "Giorgio Armani",
+    "Givenchy",
+    "Gucci",
+    "Guerlain",
+    "Guy Laroche",
+    "Hermès",
+    "Hermes",
+    "Hugo Boss",
+    "Initio Parfums Privés",
+    "Initio",
+    "Issey Miyake",
+    "Jean Paul Gaultier",
+    "Jennifer Lopez",
+    "Jimmy Choo",
+    "Jo Malone",
+    "John Varvatos",
+    "Juliette Has a Gun",
+    "Kayali",
+    "Kenzo",
+    "Kilian",
+    "Lancôme",
+    "Lancome",
+    "Lattafa",
+    "Le Labo",
+    "Loewe",
+    "L'Occitane",
+    "Lolita Lempicka",
+    "Louis Vuitton",
+    "Maison Francis Kurkdjian",
+    "Maison Margiela",
+    "Marc Jacobs",
+    "Mercedes-Benz",
+    "Michael Kors",
+    "Miu Miu",
+    "Mancera",
+    "Montale",
+    "Montblanc",
+    "Moschino",
+    "Mugler",
+    "Nasomatto",
+    "Natura",
+    "Nishane",
+    "Oscar de la Renta",
+    "Ormonde Jayne",
+    "Orto Parisi",
+    "Paco Rabanne",
+    "Parfums de Marly",
+    "Penhaligon's",
+    "Penhaligons",
+    "Prada",
+    "Ralph Lauren",
+    "Roja Dove",
+    "Roja Parfums",
+    "Salvatore Ferragamo",
+    "Serge Lutens",
+    "Shiseido",
+    "Swiss Arabian",
+    "Tom Ford",
+    "Thierry Mugler",
+    "Tiffany & Co.",
+    "Tommy Hilfiger",
+    "Trussardi",
+    "Valentino",
+    "Van Cleef & Arpels",
+    "Versace",
+    "Viktor & Rolf",
+    "Xerjoff",
+    "Yves Saint Laurent",
+    "YSL",
+    "Zadig & Voltaire",
+    "Zara",
+)
+
+VIP_BOOST_SCORE: float = 0.35
+
+
+def normalize_brand_name(brand) -> str:
+    """Single canonical form: trimmed, lowercased, internal whitespace collapsed."""
+    if brand is None or (isinstance(brand, float) and pd.isna(brand)):
+        return ""
+    s = str(brand).strip()
+    if not s or s.lower() in ("nan", "none", "<na>"):
+        return ""
+    s = re.sub(r"\s+", " ", s)
+    return s.lower().strip()
+
+
+def _vip_normalized_entries() -> tuple[frozenset[str], tuple[str, ...]]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for raw in VIP_BRANDS:
+        n = normalize_brand_name(raw)
+        if n and n not in seen:
+            seen.add(n)
+            ordered.append(n)
+    return frozenset(seen), tuple(ordered)
+
+
+_VIP_BRAND_SET, _VIP_BRAND_ORDERED = _vip_normalized_entries()
+
+
+def brand_matches_vip(brand) -> bool:
+    """
+    True if the dataset brand matches a VIP house after strict whitespace normalization,
+    including when the VIP name appears as a leading segment (e.g. 'Lattafa' in 'Lattafa Perfumes')
+    or as a terminal segment (e.g. 'Dior' in 'Christian Dior').
+    """
+    b = normalize_brand_name(brand)
+    if not b:
+        return False
+    if b in _VIP_BRAND_SET:
+        return True
+    padded = f" {b} "
+    for v in _VIP_BRAND_ORDERED:
+        if not v:
+            continue
+        if b.startswith(v + " ") or b.endswith(" " + v) or f" {v} " in padded:
+            return True
+    return False
+
 
 def build_metadata(df: pd.DataFrame) -> pd.Series:
     """
@@ -181,45 +344,51 @@ def get_recommendations(
 
     xq = vectorizer.transform([text])
 
-    results: list[dict] = []
-    n_fetch = min(max(k * 20, 30), len(df))
+    pool = min(200, len(df))
+    ranked: list[dict] = []
 
-    while len(results) < k and n_fetch <= len(df):
-        distances, indices = neighbor_model.kneighbors(xq, n_neighbors=n_fetch)
+    while pool <= len(df):
+        nv = int(min(pool, len(df)))
+        distances, indices = neighbor_model.kneighbors(xq, n_neighbors=nv)
         dist_row = distances[0]
         idx_row = indices[0]
 
-        seen = {r["index"] for r in results}
+        candidates: list[dict] = []
         for dist, nei in zip(dist_row, idx_row):
             nei = int(nei)
             if exclude_self is not None and nei == exclude_self:
                 continue
-            if nei in seen:
-                continue
             if not _gender_ok(df.at[nei, "Gender"], gender_filter):
                 continue
-            # Cosine distance in [0, 2]; similarity for display
             sim = 1.0 - float(dist)
-            results.append(
+            brand = df.at[nei, "Brand"]
+            is_vip = brand_matches_vip(brand)
+            boost = VIP_BOOST_SCORE if is_vip else 0.0
+            candidates.append(
                 {
                     "index": nei,
                     "perfume_name": df.at[nei, "Perfume Name"],
-                    "brand": df.at[nei, "Brand"],
+                    "brand": brand,
                     "gender": df.at[nei, "Gender"],
                     "season": df.at[nei, "Season"],
                     "cosine_distance": float(dist),
                     "similarity": sim,
+                    "is_vip": is_vip,
+                    "boost_score": boost,
                 }
             )
-            seen.add(nei)
-            if len(results) >= k:
-                break
 
-        if n_fetch >= len(df):
-            break
-        n_fetch = min(n_fetch * 2, len(df))
+        ranked = sorted(
+            candidates,
+            key=lambda r: (not r["is_vip"], -r["similarity"]),
+        )
 
-    return results[:k]
+        if len(ranked) >= k or nv >= len(df):
+            return ranked[:k]
+
+        pool = min(pool * 2, len(df))
+
+    return ranked[:k]
 
 
 def train_and_save(base_dir: str | Path | None = None) -> None:

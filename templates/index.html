@@ -10,17 +10,12 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
-            display: ['"Outfit"', 'system-ui', 'sans-serif'],
+            sans: ['"Inter"', 'system-ui', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
           },
           colors: {
-            ink: { 950: '#0a0a0f', 900: '#12121a', 800: '#1a1a26', 700: '#252532' },
-            mist: { 400: '#9ca3b8', 300: '#b8c0d4', 200: '#d4dae8' },
-            accent: { DEFAULT: '#a78bfa', dim: '#7c3aed' },
-          },
-          boxShadow: {
-            glow: '0 0 40px -10px rgba(167, 139, 250, 0.35)',
-            card: '0 4px 24px rgba(0,0,0,0.45)',
+            cream: '#F9F8F6',
+            champagne: '#D4AF37',
           },
         },
       },
@@ -28,90 +23,152 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+  <style>
+    /* Paper-like grain (fixed, low opacity) */
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0.045;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .boutique-card-surface {
+      -webkit-backdrop-filter: blur(40px);
+      backdrop-filter: blur(40px);
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        -webkit-backdrop-filter 0.45s ease,
+        backdrop-filter 0.45s ease;
+    }
+    .boutique-card:hover .boutique-card-surface {
+      -webkit-backdrop-filter: blur(56px);
+      backdrop-filter: blur(56px);
+    }
+    .search-capsule {
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .search-capsule:focus-within {
+      transform: scale(1.025);
+      box-shadow: 0 14px 48px rgba(0, 0, 0, 0.09);
+    }
+    /* Luxury wordmark: Great Vibes + deep espresso + whisper of champagne */
+    .logo-sillage {
+      font-family: 'Great Vibes', cursive;
+      font-weight: 400;
+      color: #2d1b14;
+      letter-spacing: 0.05em;
+      line-height: 1.05;
+      text-shadow:
+        0 1px 0 rgba(212, 175, 55, 0.2),
+        0 2px 0 rgba(212, 175, 55, 0.06),
+        0 3px 26px rgba(45, 27, 20, 0.12);
+    }
+    .logo-sillage-cap {
+      display: inline-block;
+      font-size: 1.18em;
+      line-height: 0.9;
+      margin-right: 0.04em;
+      vertical-align: -0.03em;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-ink-950 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(124,58,237,0.18),transparent)] text-mist-200 antialiased">
-  <div class="mx-auto max-w-3xl px-4 pb-24 pt-12 sm:px-6 sm:pt-16">
-    <!-- Header -->
-    <header class="mb-10 text-center">
-      <h1 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">
-        Sillage
+<body class="min-h-screen bg-cream font-sans text-stone-700 antialiased">
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <div class="relative z-50 mx-auto max-w-3xl px-4 pb-24 pt-12 sm:px-6 sm:pt-16">
+    <header class="mb-12 text-center sm:mb-14">
+      <h1 class="logo-sillage text-8xl sm:text-9xl" aria-label="Sillage">
+        <span class="logo-sillage-cap">S</span>illage
       </h1>
-      <p class="mt-3 text-sm text-mist-400 sm:text-base">
+      <p class="mx-auto mb-1 mt-4 max-w-md text-sm leading-relaxed text-stone-500 sm:mt-5 sm:text-base">
         Describe your mood, an occasion, or a favorite note. I’ll find your perfect scent trail.
       </p>
     </header>
 
-    <!-- Search -->
-    <div class="mx-auto max-w-2xl space-y-6">
-      <div class="relative shadow-glow rounded-2xl">
-        <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-mist-400" aria-hidden="true">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </span>
-        <input
-          id="search-input"
-          type="search"
-          autocomplete="off"
-          placeholder="Search by vibe (e.g., fresh summer) or perfume name..."
-          class="w-full rounded-2xl border border-ink-700 bg-ink-900 py-4 pl-12 pr-28 text-base text-white placeholder:text-mist-400 outline-none ring-accent/0 transition focus:border-accent/50 focus:ring-2 focus:ring-accent/25"
-          aria-label="Search perfumes"
-        />
-        <button
-          type="button"
-          id="search-btn"
-          class="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-violet-400 active:scale-[0.98]"
-        >
-          Search
-        </button>
+    <div class="mx-auto max-w-2xl space-y-8">
+      <!-- Glass search capsule -->
+      <div
+        class="search-capsule rounded-full border border-white/60 bg-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl"
+      >
+        <div class="relative flex items-center py-1 pl-5 pr-2">
+          <span class="pointer-events-none flex shrink-0 text-stone-400" aria-hidden="true">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            id="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Search by vibe or perfume name…"
+            class="min-w-0 flex-1 border-0 bg-transparent py-3.5 pl-3 pr-3 text-base text-stone-800 placeholder:text-stone-400 outline-none ring-0"
+            aria-label="Search perfumes"
+          />
+          <button
+            type="button"
+            id="search-btn"
+            class="shrink-0 rounded-full bg-champagne/90 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-champagne active:scale-[0.98]"
+          >
+            Search
+          </button>
+        </div>
       </div>
 
-      <!-- Gender filter -->
-      <fieldset class="flex flex-wrap items-center justify-center gap-3">
+      <!-- Sliding pill gender -->
+      <fieldset class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <legend class="sr-only">Gender filter</legend>
-        <span class="text-xs font-medium uppercase tracking-wider text-mist-400">Gender</span>
-        <div class="inline-flex rounded-xl border border-ink-700 bg-ink-900 p-1" role="group" aria-label="Gender toggle">
-          <button type="button" data-gender="men" class="gender-btn rounded-lg px-4 py-2 text-sm font-medium text-mist-300 transition hover:text-white">
+        <span class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-stone-400">Gender</span>
+        <div
+          id="gender-shell"
+          class="relative mx-auto flex h-11 w-full max-w-[220px] rounded-full border border-white/60 bg-white/35 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl sm:max-w-[240px]"
+          role="group"
+          aria-label="Gender toggle"
+        >
+          <div
+            id="gender-pill"
+            class="pointer-events-none absolute left-0 top-1 rounded-full border border-champagne/50 bg-champagne/15 shadow-[0_2px_8px_rgba(212,175,55,0.12)]"
+            aria-hidden="true"
+          ></div>
+          <button type="button" data-gender="men" class="gender-btn relative z-10 flex-1 basis-0 rounded-full py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800">
             Men
           </button>
-          <button type="button" data-gender="women" class="gender-btn rounded-lg px-4 py-2 text-sm font-medium text-mist-300 transition hover:text-white">
+          <button type="button" data-gender="women" class="gender-btn relative z-10 flex-1 basis-0 rounded-full py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800">
             Women
-          </button>
-          <button type="button" data-gender="both" class="gender-btn rounded-lg px-4 py-2 text-sm font-medium text-mist-300 transition hover:text-white">
-            Both
           </button>
         </div>
       </fieldset>
     </div>
 
-    <!-- Status -->
-    <div id="status" class="mt-8 hidden text-center text-sm text-mist-400" role="status" aria-live="polite"></div>
+    <div id="status" class="mt-10 hidden text-center text-sm text-stone-500" role="status" aria-live="polite"></div>
 
-    <!-- Results -->
-    <div id="results" class="mt-8 space-y-4" aria-live="polite"></div>
+    <div id="results" class="mt-10 space-y-4" aria-live="polite"></div>
 
-    <!-- Load more -->
-    <div id="load-more-wrap" class="mt-10 hidden flex justify-center">
+    <div id="load-more-wrap" class="mt-12 hidden flex justify-center">
       <button
         type="button"
         id="load-more-btn"
-        class="rounded-xl border border-ink-700 bg-ink-800 px-8 py-3 text-sm font-semibold text-mist-200 transition hover:border-accent/40 hover:bg-ink-700 hover:text-white"
+        class="rounded-full border border-white/60 bg-white/40 px-10 py-3 text-sm font-semibold text-stone-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition hover:-translate-y-0.5 hover:bg-white/55 hover:shadow-[0_12px_36px_rgb(0,0,0,0.06)]"
       >
         Load 5 More
       </button>
     </div>
   </div>
 
-  <!-- Perfume bottle icon (hidden template for JS clone) -->
   <template id="bottle-icon">
-    <svg class="h-12 w-10 shrink-0 text-accent/90" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M14 4h12v6l-2 2v4h-8v-4l-2-2V4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-      <path d="M12 16h16l2 6c0 12-4 20-10 22-6-2-10-10-10-22l2-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-      <path d="M16 24h8" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5" />
-    </svg>
+    <div class="flex h-10 w-7 shrink-0 items-center justify-center text-stone-300 group-hover:text-stone-400" aria-hidden="true">
+      <svg class="h-9 w-4" viewBox="0 0 16 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 2v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        <rect x="4.5" y="5" width="7" height="24" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none" />
+      </svg>
+    </div>
   </template>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     (function () {
       const input = document.getElementById('search-input');
@@ -120,34 +177,70 @@
       const statusEl = document.getElementById('status');
       const loadMoreWrap = document.getElementById('load-more-wrap');
       const loadMoreBtn = document.getElementById('load-more-btn');
+      const genderShell = document.getElementById('gender-shell');
+      const genderPill = document.getElementById('gender-pill');
       const genderBtns = document.querySelectorAll('.gender-btn');
       const bottleTemplate = document.getElementById('bottle-icon');
 
-      let selectedGender = 'both';
+      let selectedGender = 'men';
       let limit = 5;
       let debounceId = null;
       const DEBOUNCE_MS = 320;
 
-      function setGenderUI() {
+      function genderIndex() {
+        return selectedGender === 'women' ? 1 : 0;
+      }
+
+      function layoutGenderPill(animate) {
+        if (!genderShell || !genderPill) return;
+        const pad = 4;
+        const w = genderShell.offsetWidth;
+        const inner = w - pad * 2;
+        const seg = inner / 2;
+        const x = pad + genderIndex() * seg;
+        const h = genderShell.offsetHeight - pad * 2;
+        const props = { x, width: seg, height: h, top: pad, borderRadius: 9999 };
+        if (typeof gsap !== 'undefined' && animate) {
+          gsap.to(genderPill, { ...props, duration: 0.38, ease: 'power2.inOut' });
+        } else if (typeof gsap !== 'undefined') {
+          gsap.set(genderPill, props);
+        } else {
+          genderPill.style.left = '0';
+          genderPill.style.transform = 'translateX(' + x + 'px)';
+          genderPill.style.width = seg + 'px';
+          genderPill.style.height = h + 'px';
+          genderPill.style.top = pad + 'px';
+        }
+      }
+
+      function setGenderUI(animatePill) {
         genderBtns.forEach((btn) => {
           const on = btn.dataset.gender === selectedGender;
-          btn.classList.toggle('bg-accent', on);
-          btn.classList.toggle('text-ink-950', on);
+          btn.classList.toggle('text-stone-900', on);
           btn.classList.toggle('font-semibold', on);
-          btn.classList.toggle('shadow-sm', on);
+          btn.classList.toggle('text-stone-500', !on);
           btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
+        layoutGenderPill(animatePill);
       }
 
       genderBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
           selectedGender = btn.dataset.gender;
           limit = 5;
-          setGenderUI();
+          setGenderUI(true);
           runSearch();
         });
       });
-      setGenderUI();
+
+      window.addEventListener('resize', function () {
+        layoutGenderPill(false);
+      });
+
+      setGenderUI(false);
+      requestAnimationFrame(function () {
+        layoutGenderPill(false);
+      });
 
       function showStatus(msg, isError) {
         if (!msg) {
@@ -157,8 +250,8 @@
         }
         statusEl.textContent = msg;
         statusEl.classList.remove('hidden');
-        statusEl.classList.toggle('text-red-400', !!isError);
-        statusEl.classList.toggle('text-mist-400', !isError);
+        statusEl.classList.toggle('text-red-600/90', !!isError);
+        statusEl.classList.toggle('text-stone-500', !isError);
       }
 
       function buildSearchURL() {
@@ -167,12 +260,23 @@
         params.set('query', q);
         params.set('limit', String(limit));
         if (selectedGender === 'men') params.set('gender', 'Man');
-        else if (selectedGender === 'women') params.set('gender', 'Women');
+        else params.set('gender', 'Women');
         return '/search?' + params.toString();
       }
 
       function cloneBottle() {
         return bottleTemplate.content.cloneNode(true);
+      }
+
+      function animateResultCards(cards) {
+        if (!cards.length || typeof gsap === 'undefined') return;
+        gsap.from(cards, {
+          y: 28,
+          opacity: 0,
+          duration: 0.48,
+          stagger: 0.075,
+          ease: 'power2.out',
+        });
       }
 
       function renderResults(data) {
@@ -186,24 +290,31 @@
 
         if (items.length === 0) {
           const empty = document.createElement('p');
-          empty.className = 'text-center text-mist-400 py-12';
+          empty.className = 'text-center text-stone-500 py-14';
           empty.textContent = 'No matches yet — try another vibe or name.';
           resultsEl.appendChild(empty);
+          if (typeof gsap !== 'undefined') {
+            gsap.from(empty, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.out' });
+          }
           loadMoreWrap.classList.add('hidden');
           return;
         }
 
         const canLoadMore = items.length > 0 && items.length === data.limit && data.limit < 100;
+        const cardEls = [];
 
         items.forEach((r) => {
           const card = document.createElement('article');
           card.className =
-            'flex gap-4 rounded-2xl border border-ink-700 bg-ink-900/80 p-4 shadow-card backdrop-blur-sm transition hover:border-accent/30';
+            'boutique-card group cursor-default rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-transform duration-300 ease-out hover:-translate-y-2';
+
+          const surface = document.createElement('div');
+          surface.className =
+            'boutique-card-surface flex gap-4 overflow-hidden rounded-2xl bg-white/40 p-5 backdrop-blur-2xl';
 
           const iconWrap = document.createElement('div');
-          iconWrap.className = 'flex items-start pt-1';
+          iconWrap.className = 'flex shrink-0 items-start pt-0.5';
           iconWrap.appendChild(cloneBottle());
-          card.appendChild(iconWrap);
 
           const body = document.createElement('div');
           body.className = 'min-w-0 flex-1';
@@ -213,27 +324,32 @@
           name.target = '_blank';
           name.rel = 'noopener noreferrer';
           name.className =
-            'font-display text-lg font-semibold text-white hover:text-accent transition break-words';
+            'font-sans text-lg font-semibold text-stone-900 transition hover:text-champagne break-words decoration-champagne/40 underline-offset-4 hover:underline';
           name.textContent = r.perfume_name || 'Unknown';
           body.appendChild(name);
 
           const meta = document.createElement('p');
-          meta.className = 'mt-1 text-sm text-mist-400';
-          const brand = (r.brand && String(r.brand) !== 'nan') ? r.brand : '—';
+          meta.className = 'mt-1.5 text-sm text-stone-500';
+          const brand = r.brand && String(r.brand) !== 'nan' ? r.brand : '—';
           const season = r.season || '—';
           meta.textContent = brand + ' · ' + season;
           body.appendChild(meta);
 
           if (r.similarity != null) {
             const sim = document.createElement('p');
-            sim.className = 'mt-2 text-xs text-mist-500';
-            sim.textContent = 'Match score: ' + Number(r.similarity).toFixed(3);
+            sim.className = 'mt-2 text-xs tracking-wide text-stone-400';
+            sim.textContent = 'Match · ' + Number(r.similarity).toFixed(3);
             body.appendChild(sim);
           }
 
-          card.appendChild(body);
+          surface.appendChild(iconWrap);
+          surface.appendChild(body);
+          card.appendChild(surface);
           resultsEl.appendChild(card);
+          cardEls.push(card);
         });
+
+        animateResultCards(cardEls);
 
         if (canLoadMore) loadMoreWrap.classList.remove('hidden');
         else loadMoreWrap.classList.add('hidden');
