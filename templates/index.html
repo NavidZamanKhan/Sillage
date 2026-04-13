@@ -26,6 +26,35 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --theme-rgb: 120, 190, 255;
+      --theme-strong-rgb: 98, 170, 236;
+      --theme-soft-rgb: 228, 246, 251;
+      --theme-ambient-alpha: 0.22;
+      --theme-ambient-mid-alpha: 0.12;
+      --theme-ambient-soft-alpha: 0.18;
+      --glass-bg: rgba(255, 255, 255, 0.58);
+      --glass-bg-strong: rgba(255, 255, 255, 0.74);
+      --glass-border: rgba(255, 255, 255, 0.64);
+      --glass-highlight: rgba(255, 255, 255, 0.8);
+      --glass-shadow: 0 16px 44px rgba(30, 42, 56, 0.08);
+    }
+    body[data-theme="men"] {
+      --theme-rgb: 120, 190, 255;
+      --theme-strong-rgb: 98, 170, 236;
+      --theme-soft-rgb: 228, 246, 251;
+      --theme-ambient-alpha: 0.24;
+      --theme-ambient-mid-alpha: 0.13;
+      --theme-ambient-soft-alpha: 0.2;
+    }
+    body[data-theme="women"] {
+      --theme-rgb: 255, 170, 200;
+      --theme-strong-rgb: 236, 150, 182;
+      --theme-soft-rgb: 250, 235, 242;
+      --theme-ambient-alpha: 0.24;
+      --theme-ambient-mid-alpha: 0.13;
+      --theme-ambient-soft-alpha: 0.2;
+    }
     /* Paper-like grain (fixed, low opacity) */
     .grain-overlay {
       position: fixed;
@@ -36,25 +65,287 @@
       mix-blend-mode: multiply;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
+    body {
+      transition: background-color 0.35s ease;
+    }
+    .hero-ambient-glow {
+      position: absolute;
+      left: 50%;
+      top: 4.1rem;
+      width: min(46rem, 94vw);
+      height: 21rem;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 9999px;
+      opacity: 0.46;
+      filter: blur(82px);
+      background:
+        radial-gradient(
+          ellipse at 50% 44%,
+          rgba(var(--theme-rgb), var(--theme-ambient-alpha)) 0%,
+          rgba(var(--theme-rgb), var(--theme-ambient-mid-alpha)) 32%,
+          rgba(var(--theme-soft-rgb), var(--theme-ambient-soft-alpha)) 56%,
+          rgba(255, 255, 255, 0.12) 72%,
+          rgba(249, 248, 246, 0) 100%
+        );
+      transition: background 0.35s ease;
+    }
+    .glass-reflection {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .glass-reflection::before {
+      content: '';
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      top: 0;
+      height: 48%;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0.2) 34%,
+        rgba(255, 255, 255, 0.04) 72%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      opacity: 0.46;
+    }
+    .search-capsule {
+      position: relative;
+      border: 1px solid var(--glass-border);
+      background:
+        linear-gradient(180deg, var(--glass-bg-strong) 0%, var(--glass-bg) 100%),
+        radial-gradient(120% 120% at 12% 0%, rgba(var(--theme-rgb), 0.14) 0%, rgba(var(--theme-rgb), 0.03) 48%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(24px) saturate(1.2);
+      backdrop-filter: blur(24px) saturate(1.2);
+      box-shadow:
+        var(--glass-shadow),
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.28);
+      transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.35s ease,
+        border-color 0.4s ease,
+        -webkit-backdrop-filter 0.4s ease,
+        backdrop-filter 0.4s ease;
+    }
+    .search-capsule::before {
+      content: '';
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      top: 2px;
+      height: 44%;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.04));
+      opacity: 0.42;
+    }
+    .search-capsule::after {
+      content: '';
+      position: absolute;
+      inset: 8% 10% auto 10%;
+      height: 62%;
+      border-radius: 9999px;
+      pointer-events: none;
+      background: radial-gradient(80% 120% at 20% 0%, rgba(var(--theme-rgb), 0.12), rgba(var(--theme-rgb), 0));
+      opacity: 0.36;
+      transition: opacity 0.35s ease;
+    }
+    .search-capsule:focus-within {
+      transform: translateY(-1px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.8);
+      -webkit-backdrop-filter: blur(28px) saturate(1.28);
+      backdrop-filter: blur(28px) saturate(1.28);
+      box-shadow:
+        0 24px 56px rgba(36, 49, 66, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.52),
+        0 0 20px rgba(var(--theme-rgb), 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    }
+    .search-capsule:focus-within::before {
+      opacity: 0.52;
+    }
+    .search-capsule:focus-within::after {
+      opacity: 0.52;
+    }
+    .search-theme-btn {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%),
+        rgba(var(--theme-rgb), 0.4);
+      color: rgba(36, 46, 58, 0.98);
+      -webkit-backdrop-filter: blur(14px) saturate(1.45);
+      backdrop-filter: blur(14px) saturate(1.45);
+      box-shadow:
+        0 6px 24px rgba(var(--theme-rgb), 0.27),
+        0 2px 8px rgba(29, 41, 54, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.3s ease,
+        background 0.35s ease,
+        color 0.25s ease;
+    }
+    .search-theme-btn:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.17) 100%),
+        rgba(var(--theme-rgb), 0.44);
+      -webkit-backdrop-filter: blur(14px) saturate(1.5);
+      backdrop-filter: blur(14px) saturate(1.5);
+      box-shadow:
+        0 8px 28px rgba(var(--theme-rgb), 0.3),
+        0 4px 14px rgba(29, 41, 54, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+    }
+    .search-theme-btn:active {
+      transform: scale(0.98);
+    }
+    .toggle-shell-glass {
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.38) 100%),
+        radial-gradient(120% 110% at 12% 0%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-backdrop-filter: blur(22px) saturate(1.16);
+      backdrop-filter: blur(22px) saturate(1.16);
+      box-shadow:
+        0 12px 30px rgba(30, 43, 57, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.26);
+      transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+    }
+    /* Active segment: stronger internal tint + soft theme glow (projector-friendly) */
+    .toggle-pill-liquid {
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 6px 24px rgba(var(--theme-rgb), 0.25),
+        0 1px 4px rgba(28, 40, 54, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%),
+        rgba(var(--theme-rgb), 0.35);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      backdrop-filter: blur(14px) saturate(1.4);
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+    .toggle-pill-liquid::before {
+      content: '';
+      position: absolute;
+      inset: 3px 14% auto 14%;
+      height: 42%;
+      border-radius: 9999px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.08));
+      opacity: 0.46;
+    }
+    .toggle-pill-liquid::after {
+      content: '';
+      position: absolute;
+      inset: 16% 6% 12% 6%;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 32%, rgba(var(--theme-rgb), 0.26) 0%, rgba(var(--theme-rgb), 0.1) 56%, rgba(var(--theme-rgb), 0) 74%);
+      opacity: 0.54;
+    }
+    .boutique-card {
+      transition:
+        transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.35s ease;
+    }
+    .boutique-card:hover {
+      transform: translateY(-5px);
+    }
     .boutique-card-surface {
-      -webkit-backdrop-filter: blur(40px);
-      backdrop-filter: blur(40px);
-      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 48%, rgba(255, 255, 255, 0.3) 100%),
+        radial-gradient(130% 140% at 12% 0%, rgba(var(--theme-rgb), 0.09) 0%, rgba(var(--theme-rgb), 0.025) 56%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(40px) saturate(1.18);
+      backdrop-filter: blur(40px) saturate(1.18);
+      box-shadow:
+        0 14px 38px rgba(29, 40, 56, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.74),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.26);
+      transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
         box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.4s ease,
+        border-color 0.45s ease,
         -webkit-backdrop-filter 0.45s ease,
         backdrop-filter 0.45s ease;
     }
+    .boutique-card-surface::before {
+      content: '';
+      position: absolute;
+      left: 5%;
+      right: 5%;
+      top: 0;
+      height: 38%;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0));
+      opacity: 0.4;
+    }
+    .boutique-card-surface::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(110% 90% at 12% 0%, rgba(var(--theme-rgb), 0.08) 0%, rgba(var(--theme-rgb), 0) 62%);
+      opacity: 0.2;
+      transition: opacity 0.35s ease;
+    }
     .boutique-card:hover .boutique-card-surface {
-      -webkit-backdrop-filter: blur(56px);
-      backdrop-filter: blur(56px);
+      border-color: rgba(255, 255, 255, 0.78);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.46) 52%, rgba(255, 255, 255, 0.32) 100%),
+        radial-gradient(130% 140% at 10% 0%, rgba(var(--theme-rgb), 0.13) 0%, rgba(var(--theme-rgb), 0.04) 56%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(46px) saturate(1.24);
+      backdrop-filter: blur(46px) saturate(1.24);
+      box-shadow:
+        0 20px 50px rgba(28, 39, 56, 0.14),
+        0 0 0 1px rgba(var(--theme-rgb), 0.06),
+        0 0 14px rgba(var(--theme-rgb), 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.32);
     }
-    .search-capsule {
-      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    .boutique-card:hover .boutique-card-surface::before {
+      opacity: 0.48;
     }
-    .search-capsule:focus-within {
-      transform: scale(1.025);
-      box-shadow: 0 14px 48px rgba(0, 0, 0, 0.09);
+    .boutique-card:hover .boutique-card-surface::after {
+      opacity: 0.32;
+    }
+    .boutique-card:hover .result-name {
+      color: #2c3847;
+    }
+    .boutique-card:hover .result-icon-wrap {
+      transform: translateY(-2px);
+    }
+    .featured-result .boutique-card-surface {
+      border-color: rgba(255, 255, 255, 0.8);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 52%, rgba(255, 255, 255, 0.35) 100%),
+        radial-gradient(130% 140% at 10% 0%, rgba(var(--theme-rgb), 0.12) 0%, rgba(var(--theme-rgb), 0.035) 58%, rgba(255, 255, 255, 0) 100%);
+      box-shadow:
+        0 20px 52px rgba(25, 36, 53, 0.14),
+        0 0 12px rgba(var(--theme-rgb), 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.32);
+      -webkit-backdrop-filter: blur(44px) saturate(1.22);
+      backdrop-filter: blur(44px) saturate(1.22);
     }
     /* Luxury wordmark: Great Vibes + deep espresso + whisper of champagne */
     .logo-sillage {
@@ -77,11 +368,12 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-cream font-sans text-stone-700 antialiased">
+<body data-theme="men" class="min-h-screen bg-cream font-sans text-stone-700 antialiased">
   <div class="grain-overlay" aria-hidden="true"></div>
 
   <div class="relative z-50 mx-auto max-w-3xl px-4 pb-24 pt-12 sm:px-6 sm:pt-16">
-    <header class="mb-12 text-center sm:mb-14">
+    <div class="hero-ambient-glow" aria-hidden="true"></div>
+    <header class="relative z-10 mb-10 text-center sm:mb-12">
       <h1 class="logo-sillage text-8xl sm:text-9xl" aria-label="Sillage">
         <span class="logo-sillage-cap">S</span>illage
       </h1>
@@ -90,10 +382,10 @@
       </p>
     </header>
 
-    <div class="mx-auto max-w-2xl space-y-8">
+    <div class="relative z-10 mx-auto max-w-2xl space-y-5 sm:space-y-6">
       <!-- Glass search capsule -->
       <div
-        class="search-capsule rounded-full border border-white/60 bg-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl"
+        class="search-capsule glass-reflection rounded-full"
       >
         <div class="relative flex items-center py-1 pl-5 pr-2">
           <span class="pointer-events-none flex shrink-0 text-stone-400" aria-hidden="true">
@@ -112,7 +404,7 @@
           <button
             type="button"
             id="search-btn"
-            class="shrink-0 rounded-full bg-champagne/90 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-champagne active:scale-[0.98]"
+            class="search-theme-btn shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition"
           >
             Search
           </button>
@@ -120,18 +412,17 @@
       </div>
 
       <!-- Sliding pill gender -->
-      <fieldset class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+      <fieldset class="flex justify-center">
         <legend class="sr-only">Gender filter</legend>
-        <span class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-stone-400">Gender</span>
         <div
           id="gender-shell"
-          class="relative mx-auto flex h-11 w-full max-w-[220px] rounded-full border border-white/60 bg-white/35 p-1 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl sm:max-w-[240px]"
+          class="toggle-shell-glass glass-reflection relative flex h-11 w-full max-w-[220px] rounded-full p-1 sm:max-w-[240px]"
           role="group"
           aria-label="Gender toggle"
         >
           <div
             id="gender-pill"
-            class="pointer-events-none absolute left-0 top-1 rounded-full border border-champagne/50 bg-champagne/15 shadow-[0_2px_8px_rgba(212,175,55,0.12)]"
+            class="toggle-pill-liquid pointer-events-none absolute left-0 top-1 rounded-full"
             aria-hidden="true"
           ></div>
           <button type="button" data-gender="men" class="gender-btn relative z-10 flex-1 basis-0 rounded-full py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800">
@@ -213,7 +504,12 @@
         }
       }
 
+      function syncTheme() {
+        document.body.setAttribute('data-theme', selectedGender);
+      }
+
       function setGenderUI(animatePill) {
+        syncTheme();
         genderBtns.forEach((btn) => {
           const on = btn.dataset.gender === selectedGender;
           btn.classList.toggle('text-stone-900', on);
@@ -271,12 +567,71 @@
       function animateResultCards(cards) {
         if (!cards.length || typeof gsap === 'undefined') return;
         gsap.from(cards, {
-          y: 28,
+          y: 34,
           opacity: 0,
-          duration: 0.48,
-          stagger: 0.075,
-          ease: 'power2.out',
+          duration: 0.52,
+          stagger: 0.07,
+          ease: 'power3.out',
         });
+      }
+
+      function deriveScentTags(result) {
+        const tags = [];
+        const seen = new Set();
+
+        function addTag(tag) {
+          if (!tag) return;
+          const t = String(tag).trim();
+          if (!t) return;
+          const key = t.toLowerCase();
+          if (seen.has(key)) return;
+          seen.add(key);
+          tags.push(t);
+        }
+
+        function seasonTag(rawSeason) {
+          const s = String(rawSeason || '').trim().toLowerCase();
+          if (!s || s === 'nan' || s === '—') return '';
+          if (s.includes('winter')) return 'Winter';
+          if (s.includes('summer')) return 'Summer';
+          if (s.includes('spring')) return 'Spring';
+          if (s.includes('fall') || s.includes('autumn')) return 'Fall';
+          if (s.includes('all')) return 'All Season';
+          return String(rawSeason).trim();
+        }
+
+        const season = seasonTag(result.season);
+        addTag(season);
+
+        const perfumeName = String(result.perfume_name || '').toLowerCase();
+        const rules = [
+          { re: /\boud\b/, tag: 'Oud' },
+          { re: /\brose\b/, tag: 'Rose' },
+          { re: /\bvanilla\b/, tag: 'Vanilla' },
+          { re: /\b(marine|sea)\b/, tag: 'Marine' },
+          { re: /\bfresh\b/, tag: 'Fresh' },
+          { re: /\b(spice|spicy)\b/, tag: 'Spicy' },
+          { re: /\b(wood|woody|cedar)\b/, tag: 'Woody' },
+          { re: /\bamber\b/, tag: 'Amber' },
+          { re: /\bmusk\b/, tag: 'Musk' },
+          { re: /\b(floral|flower)\b/, tag: 'Floral' },
+          { re: /\b(citrus|lemon|bergamot|orange)\b/, tag: 'Citrus' },
+        ];
+        rules.forEach((rule) => {
+          if (rule.re.test(perfumeName)) addTag(rule.tag);
+        });
+
+        const seasonKey = season.toLowerCase();
+        let defaults = ['Balanced', 'Elegant'];
+        if (seasonKey.includes('winter')) defaults = ['Warm', 'Cozy'];
+        else if (seasonKey.includes('summer')) defaults = ['Fresh', 'Airy'];
+        else if (seasonKey.includes('spring')) defaults = ['Soft', 'Bright'];
+        else if (seasonKey.includes('fall')) defaults = ['Rich', 'Smooth'];
+
+        defaults.forEach(addTag);
+        addTag('Refined');
+
+        return tags.slice(0, 3);
       }
 
       function renderResults(data) {
@@ -303,17 +658,18 @@
         const canLoadMore = items.length > 0 && items.length === data.limit && data.limit < 100;
         const cardEls = [];
 
-        items.forEach((r) => {
+        items.forEach((r, idx) => {
           const card = document.createElement('article');
           card.className =
-            'boutique-card group cursor-default rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-transform duration-300 ease-out hover:-translate-y-2';
+            'boutique-card group cursor-default rounded-2xl';
+          if (idx === 0) card.classList.add('featured-result');
 
           const surface = document.createElement('div');
           surface.className =
-            'boutique-card-surface flex gap-4 overflow-hidden rounded-2xl bg-white/40 p-5 backdrop-blur-2xl';
+            'boutique-card-surface flex gap-4 rounded-2xl p-5 sm:p-[1.35rem]';
 
           const iconWrap = document.createElement('div');
-          iconWrap.className = 'flex shrink-0 items-start pt-0.5';
+          iconWrap.className = 'result-icon-wrap flex shrink-0 items-start pt-0.5 transition-transform duration-300 ease-out';
           iconWrap.appendChild(cloneBottle());
 
           const body = document.createElement('div');
@@ -324,16 +680,21 @@
           name.target = '_blank';
           name.rel = 'noopener noreferrer';
           name.className =
-            'font-sans text-lg font-semibold text-stone-900 transition hover:text-champagne break-words decoration-champagne/40 underline-offset-4 hover:underline';
+            'result-name font-sans text-lg font-semibold text-stone-900 transition-colors duration-300 hover:text-stone-700 break-words decoration-stone-300 underline-offset-4 hover:underline';
           name.textContent = r.perfume_name || 'Unknown';
           body.appendChild(name);
 
           const meta = document.createElement('p');
-          meta.className = 'mt-1.5 text-sm text-stone-500';
+          meta.className = 'mt-1 text-sm text-stone-500';
           const brand = r.brand && String(r.brand) !== 'nan' ? r.brand : '—';
           const season = r.season || '—';
           meta.textContent = brand + ' · ' + season;
           body.appendChild(meta);
+
+          const tagsLine = document.createElement('p');
+          tagsLine.className = 'mt-2 truncate text-[0.72rem] tracking-[0.02em] text-stone-400';
+          tagsLine.textContent = deriveScentTags(r).join(' \u00b7 ');
+          body.appendChild(tagsLine);
 
           if (r.similarity != null) {
             const sim = document.createElement('p');
