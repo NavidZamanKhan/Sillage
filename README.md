@@ -1,92 +1,151 @@
-# 🌬️ Sillage | AI-Powered Fragrance Finder
+# Sillage – AI-Based Perfume Recommendation System
 
-**Sillage** is a machine learning-based web application designed to help users discover perfumes based on "vibes," specific scent notes, or similarity to famous fragrances. 
-
-Built for the **Artificial Intelligence Lab** at Metropolitan University, this project uses a dataset of over 46,000 perfumes and a K-Nearest Neighbors (KNN) algorithm to provide instant, personalized recommendations.
+An AI-powered web app that recommends perfumes from natural language queries such as moods, notes, seasons, or occasions.
 
 ---
 
-## 🚀 Features
+## Overview
 
-* **Instant Vibe Search:** Describe a mood (e.g., "dark oud winter") or an occasion ("fresh gym scent"), and the AI finds the best matches.
-* **Similarity Engine:** Search for a specific perfume (e.g., *Nishane Hacivat*) to find scents with a similar DNA.
-* **Intelligent Filtering:** Toggle between Men, Women, and Both categories with real-time result updates.
-* **Dynamic Loading:** A "Load 5 More" feature allows users to explore deeper into the recommendation list without page refreshes.
-* **Direct Discovery:** Every result links directly to a Google search for reviews, prices, and shopping.
+Sillage helps users discover fragrances without needing to know brand names or technical perfume vocabulary. A user can type something like *"fresh clean office scent"* or *"dark oud for winter"*, and the app returns a ranked list of perfumes that match the description.
+
+Under the hood, the app converts perfume metadata (notes, accords, brand, season) into TF-IDF vectors and retrieves the closest matches using K-Nearest Neighbors with cosine similarity. A reranking step then boosts results based on matched intent (notes, vibe, season, occasion) and brand tier.
 
 ---
 
-## 🧠 The "Brain": Machine Learning Logic
+## Features
 
-The recommendation engine is built on a custom-weighted NLP (Natural Language Processing) pipeline:
-
-1.  **Vectorization:** We use `TfidfVectorizer` to convert perfume metadata (Notes, Accords, Brands, and Seasons) into numerical coordinates.
-2.  **Feature Weighting:** To improve accuracy, **Scent Notes are weighted 3x higher** and **Main Accords 2x higher** than the brand name. This ensures the AI prioritizes how a perfume *smells* over who made it.
-3.  **Algorithm:** We utilize the **K-Nearest Neighbors (KNN)** algorithm with **Cosine Similarity** to calculate the mathematical distance between your search query and 46,000+ potential matches.
-
----
-
-## 🛠️ Tech Stack
-
-* **Backend:** Python, Flask
-* **Machine Learning:** Scikit-learn (KNN, TF-IDF), Pandas, Joblib
-* **Frontend:** HTML5, Tailwind CSS, JavaScript (Fetch API)
-* **Development Tool:** Cursor AI
-* **Dataset:** Cleaned Fragrantica Global Dataset (~46,000 entries)
+- **Natural language search** – query by mood, notes, season, or occasion (e.g. *"marine summer"*, *"elegant wedding scent"*).
+- **Real-time recommendations** – results are served via a JSON API and rendered instantly on the page.
+- **Gender filtering** – filter results for men, women, or unisex.
+- **VIP brand prioritization** – niche and premium houses (Amouage, Creed, MFK, Parfums de Marly, Xerjoff, Tom Ford, Dior, Chanel, etc.) are boosted, especially on luxury-intent queries; low-tier brands are penalized.
+- **Perfume-name similarity** – typing an actual perfume name (e.g. *"creed aventus"*) returns its nearest neighbors by scent DNA.
+- **Weighted feature engineering** – notes and accords dominate the vector representation over names and brands.
+- **Clean UI** – single-page Tailwind-based interface served by Flask.
 
 ---
 
-## 📁 Project Structure
+## Tech Stack
 
-```text
-fragrance_finder/
-├── app.py                 # Flask server & search routes
-├── train_model.py         # ML training script & logic
-├── prepare_data.py        # Data cleaning & preprocessing
-├── fra_perfumes.csv       # Raw dataset
-├── cleaned_perfumes.csv   # Pre-processed, AI-ready data
-├── templates/
-│   └── index.html         # Modern dark-themed UI
-└── *.joblib               # Saved ML model artifacts
+- **Language:** Python 3.10+
+- **Backend:** Flask
+- **Machine Learning:** scikit-learn (`TfidfVectorizer`, `NearestNeighbors` with cosine metric)
+- **Data:** pandas, NumPy
+- **Persistence:** joblib (model artifacts)
+- **Frontend:** HTML, Tailwind CSS (via CDN), vanilla JavaScript (Fetch API)
+
+---
+
+## How It Works
+
+The recommendation pipeline:
+
+```
+User Query
+   │
+   ▼
+Text Normalization & Tokenization
+   │
+   ▼
+Semantic Expansion
+  (notes, vibes, seasons, occasions, performance synonyms)
+   │
+   ▼
+TF-IDF Vectorization
+   │
+   ▼
+KNN Retrieval (Cosine Similarity)
+   │
+   ▼
+Intent-Aware Reranking
+  (+ VIP brand boost, gender filter)
+   │
+   ▼
+Ranked Results
 ```
 
+If the query matches a known perfume name, the app returns nearest neighbors of that perfume. Otherwise it treats the query as a vibe description and performs full semantic retrieval.
+
 ---
 
-## Setup
+## Dataset
 
-### 1. Prerequisites
+- **Source:** Fragrantica dataset from Kaggle.
+- **Raw file:** `fra_perfumes.csv` (~46k rows).
+- **Cleaned file:** `cleaned_perfumes.csv` – produced by `prepare_data.py`.
 
-- **Python 3.10+** (3.11 or 3.12 recommended)
-- Your raw dataset: `fra_perfumes.csv` in the project folder (or use the one already included)
+Fields used:
 
-### 2. Virtual environment (recommended)
+- `Perfume Name`
+- `Brand`
+- `Gender` (for men / for women / for women and men)
+- `Top Notes`, `Middle Notes`, `Base Notes`
+- `Main Accords`
+- `Season` (original or inferred from notes/accords)
+- `Time of Day` (original or inferred)
+- `Rating Count` (used as a quality filter during training when present)
+
+The cleaning step also parses notes and brand from free-text descriptions when structured columns are missing, and heuristically tags season/time-of-day when they are absent.
+
+---
+
+## Model Details
+
+**TF-IDF (Term Frequency – Inverse Document Frequency)**
+Each perfume is described by a single "metadata" string that combines its name, brand, notes, accords, and season. TF-IDF turns these strings into numerical vectors where common English words are down-weighted and distinctive scent terms (e.g. *oud*, *bergamot*, *tonka*) carry more signal.
+
+**KNN with Cosine Similarity**
+A `NearestNeighbors` model (cosine metric, brute-force) finds the perfumes whose vectors point in the most similar direction to the query vector. Cosine similarity ignores magnitude and focuses on composition, which fits perfume descriptions well.
+
+**Weighted Feature Engineering**
+In `build_metadata`, notes and accords are repeated ×3 and season ×2 before vectorization. This makes the model prioritize *how a perfume smells* over *what it is called*.
+
+**Intent-Aware Reranking**
+After KNN retrieval, `rerank_candidates` adds bonuses when a candidate's notes, accords, season, occasion, or performance signals overlap with the parsed query. VIP niche/premium brands receive an additional boost on luxury-intent queries; known low-tier brands receive a small penalty.
+
+---
+
+## Installation & Setup
+
+### 1. Clone the repository
 
 ```bash
+git clone <your-repo-url>
 cd fragrance_finder
-python -m venv .venv
 ```
+
+### 2. Create a virtual environment (recommended)
 
 **Windows (PowerShell):**
 
 ```powershell
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
 **macOS / Linux:**
 
 ```bash
+python -m venv .venv
 source .venv/bin/activate
 ```
 
 ### 3. Install dependencies
 
+The minimum packages required by the app:
+
 ```bash
-pip install flask pandas scikit-learn joblib
+pip install flask pandas numpy scikit-learn joblib
 ```
 
-### 4. Prepare the dataset
+Or install the full pinned environment:
 
-Builds `cleaned_perfumes.csv` from `fra_perfumes.csv` (column detection, note parsing, season heuristics, etc.):
+```bash
+pip install -r requirements.txt
+```
+
+### 4. (Optional) Rebuild the cleaned dataset
+
+Only needed if you want to regenerate `cleaned_perfumes.csv` from the raw `fra_perfumes.csv`:
 
 ```bash
 python prepare_data.py
@@ -94,7 +153,7 @@ python prepare_data.py
 
 ### 5. Train the model
 
-Fits TF-IDF + KNN and writes the artifacts the Flask app loads:
+Fits TF-IDF + KNN on `cleaned_perfumes.csv` and writes three artifacts:
 
 - `perfumes_df.joblib`
 - `perfumes_tfidf.joblib`
@@ -104,26 +163,87 @@ Fits TF-IDF + KNN and writes the artifacts the Flask app loads:
 python train_model.py
 ```
 
-**Optional quality filter:** If `cleaned_perfumes.csv` includes a **`Rating Count`** column, training automatically drops perfumes with fewer than **5** ratings. To use it, keep or merge that column when you build your cleaned CSV.
-
 ### 6. Run the web app
 
 ```bash
 python app.py
 ```
 
-Then open **http://127.0.0.1:5000/** in your browser.
+Then open [http://127.0.0.1:5000/](http://127.0.0.1:5000/) in your browser.
 
-Alternatively:
+---
 
-```bash
-flask --app app run
+## Usage
+
+Open the app and type any of:
+
+- A **mood or vibe** — `fresh clean office`, `dark oud winter`, `beast mode clubbing`
+- A **note or accord** — `mango`, `rose vanilla`, `marine summer`
+- A **season or occasion** — `elegant wedding scent`, `vacation tropical`
+- A **perfume name** — `creed aventus`, `amouage reflection`
+
+Optional controls:
+
+- **Gender filter:** `men`, `women`, or both.
+- **Limit:** how many results to return (default 5).
+
+The app also exposes a JSON API:
+
+```
+GET /search?query=dark+oud+winter&gender=men&limit=5
 ```
 
 ---
 
-## Updating after data or code changes
+## Project Structure
 
-1. Re-run **`python prepare_data.py`** if you changed the raw CSV or cleaning logic.
-2. Re-run **`python train_model.py`** if you changed `cleaned_perfumes.csv`, `build_metadata`, or vectorizer/KNN settings.
-3. **Restart** the Flask process so it reloads the new `.joblib` files.
+```
+fragrance_finder/
+├── app.py                  # Flask server + /search JSON API
+├── train_model.py          # TF-IDF + KNN training, query parsing, reranking
+├── prepare_data.py         # Cleans fra_perfumes.csv into cleaned_perfumes.csv
+├── requirements.txt        # Python dependencies
+├── fra_perfumes.csv        # Raw Fragrantica dataset
+├── cleaned_perfumes.csv    # Preprocessed dataset used for training
+├── perfumes_df.joblib      # Saved dataframe with helper columns
+├── perfumes_tfidf.joblib   # Saved TF-IDF vectorizer
+├── perfumes_knn.joblib     # Saved NearestNeighbors model
+└── templates/
+    └── index.html          # Single-page Tailwind UI
+```
+
+Key files at a glance:
+
+- **`app.py`** – Flask routes (`/` serves the UI, `/search` returns JSON results). Loads the trained artifacts at startup.
+- **`train_model.py`** – Builds weighted metadata, fits TF-IDF + KNN, and contains the query parser and reranker (`parse_query`, `rerank_candidates`, `get_recommendations`).
+- **`prepare_data.py`** – Column resolution, note parsing from descriptions, and season/time-of-day inference.
+- **`templates/index.html`** – Frontend that calls `/search` and renders results.
+
+---
+
+## Limitations
+
+- **Text-based similarity only** – the model understands words that appear in the dataset. Abstract or metaphorical queries (e.g. *"smells like nostalgia"*) work only when they overlap with indexed note/accord/season vocabulary.
+- **No personalization** – results do not adapt to a specific user's history or preferences.
+- **No real perfume images** – the UI links to a Google image search for each result instead of hosting bottle images.
+- **Dataset bias** – coverage, season tags, and rating counts reflect the source Fragrantica dump and may be incomplete for newer or niche releases.
+- **No smell perception** – the system matches language patterns around scents, not actual olfactory similarity.
+
+---
+
+## Future Improvements
+
+- **Deep learning embeddings** (e.g. sentence-transformer models) for richer semantic matching.
+- **User accounts and feedback** – thumbs up/down, saved favorites, and implicit signals to personalize ranking.
+- **Learning-to-rank** on top of the retrieval layer using user interactions.
+- **Hybrid retrieval** combining dense embeddings with the current TF-IDF signal.
+- **Richer UI** – faceted filters for brand, season, accord families, and price tier.
+- **Real bottle images** via a licensed image source instead of Google search links.
+
+---
+
+## Authors
+
+- **Navid Zaman Khan**
+- **Sudman Sakib Khan**
+- **Rita**
