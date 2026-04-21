@@ -6,7 +6,7 @@ An AI-powered web app that recommends perfumes from natural language queries suc
 
 ## Overview
 
-Sillage helps users discover fragrances without needing to know brand names or technical perfume vocabulary. A user can type something like *"fresh clean office scent"* or *"dark oud for winter"*, and the app returns a ranked list of perfumes that match the description.
+Sillage helps users discover fragrances without needing to know brand names or technical perfume vocabulary. A user can type something like _"fresh clean office scent"_ or _"dark oud for winter"_, and the app returns a ranked list of perfumes that match the description.
 
 Under the hood, the app converts perfume metadata (notes, accords, brand, season) into TF-IDF vectors and retrieves the closest matches using K-Nearest Neighbors with cosine similarity. A reranking step then boosts results based on matched intent (notes, vibe, season, occasion) and brand tier.
 
@@ -14,11 +14,11 @@ Under the hood, the app converts perfume metadata (notes, accords, brand, season
 
 ## Features
 
-- **Natural language search** – query by mood, notes, season, or occasion (e.g. *"marine summer"*, *"elegant wedding scent"*).
+- **Natural language search** – query by mood, notes, season, or occasion (e.g. _"marine summer"_, _"elegant wedding scent"_).
 - **Real-time recommendations** – results are served via a JSON API and rendered instantly on the page.
 - **Gender filtering** – filter results for men, women, or unisex.
 - **VIP brand prioritization** – niche and premium houses (Amouage, Creed, MFK, Parfums de Marly, Xerjoff, Tom Ford, Dior, Chanel, etc.) are boosted, especially on luxury-intent queries; low-tier brands are penalized.
-- **Perfume-name similarity** – typing an actual perfume name (e.g. *"creed aventus"*) returns its nearest neighbors by scent DNA.
+- **Perfume-name similarity** – typing an actual perfume name (e.g. _"creed aventus"_) returns its nearest neighbors by scent DNA.
 - **Weighted feature engineering** – notes and accords dominate the vector representation over names and brands.
 - **Clean UI** – single-page Tailwind-based interface served by Flask.
 
@@ -91,13 +91,13 @@ The cleaning step also parses notes and brand from free-text descriptions when s
 ## Model Details
 
 **TF-IDF (Term Frequency – Inverse Document Frequency)**
-Each perfume is described by a single "metadata" string that combines its name, brand, notes, accords, and season. TF-IDF turns these strings into numerical vectors where common English words are down-weighted and distinctive scent terms (e.g. *oud*, *bergamot*, *tonka*) carry more signal.
+Each perfume is described by a single "metadata" string that combines its name, brand, notes, accords, and season. TF-IDF turns these strings into numerical vectors where common English words are down-weighted and distinctive scent terms (e.g. _oud_, _bergamot_, _tonka_) carry more signal.
 
 **KNN with Cosine Similarity**
 A `NearestNeighbors` model (cosine metric, brute-force) finds the perfumes whose vectors point in the most similar direction to the query vector. Cosine similarity ignores magnitude and focuses on composition, which fits perfume descriptions well.
 
 **Weighted Feature Engineering**
-In `build_metadata`, notes and accords are repeated ×3 and season ×2 before vectorization. This makes the model prioritize *how a perfume smells* over *what it is called*.
+In `build_metadata`, notes and accords are repeated ×3 and season ×2 before vectorization. This makes the model prioritize _how a perfume smells_ over _what it is called_.
 
 **Intent-Aware Reranking**
 After KNN retrieval, `rerank_candidates` adds bonuses when a candidate's notes, accords, season, occasion, or performance signals overlap with the parsed query. VIP niche/premium brands receive an additional boost on luxury-intent queries; known low-tier brands receive a small penalty.
@@ -223,7 +223,7 @@ Key files at a glance:
 
 ## Limitations
 
-- **Text-based similarity only** – the model understands words that appear in the dataset. Abstract or metaphorical queries (e.g. *"smells like nostalgia"*) work only when they overlap with indexed note/accord/season vocabulary.
+- **Text-based similarity only** – the model understands words that appear in the dataset. Abstract or metaphorical queries (e.g. _"smells like nostalgia"_) work only when they overlap with indexed note/accord/season vocabulary.
 - **No personalization** – results do not adapt to a specific user's history or preferences.
 - **No real perfume images** – the UI links to a Google image search for each result instead of hosting bottle images.
 - **Dataset bias** – coverage, season tags, and rating counts reflect the source Fragrantica dump and may be incomplete for newer or niche releases.
@@ -245,5 +245,3 @@ Key files at a glance:
 ## Authors
 
 - **Navid Zaman Khan**
-- **Sudman Sakib Khan**
-- **Rita**
