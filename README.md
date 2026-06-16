@@ -19,7 +19,7 @@
 
 ## Overview
 
-**Sillage 2.0** is an AI-powered fragrance discovery and recommendation web application. It translates raw, natural language user queries—describing moods, specific ingredients, times of year, or life occasions—into highly curated perfume suggestions from a database of over **46,000 scents**.
+**Sillage 2.0** is an AI-powered fragrance discovery and recommendation web application. It translates raw, natural language user queries-describing moods, specific ingredients, times of year, or life occasions-into highly curated perfume suggestions from a database of over **46,000 scents**.
 
 Instead of forcing users to navigate complex brand names or cryptic industry jargon, Sillage acts as a personal digital sommelier. Type a vibe like _"fresh clean laundry office scent"_ or _"warm, smoky vanilla for cold winter nights"_, and Sillage will immediately surface the most accurate matches matching your olfactory intent.
 
@@ -270,12 +270,10 @@ Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** to experience the monoli
 ---
 
 ## Future Roadmap
-
-- [ ] **Dense Vector Embeddings**: Incorporate Sentence-Transformers (BERT/RoBERTa) to handle metaphorical and deep semantic queries (e.g., "smells like rainy Sunday morning walking in a forest").
-- [ ] **Hybrid Search Core**: Combine the high precision of sparse TF-IDF with the broad context of dense vector embeddings.
-- [ ] **Learning to Rank (LTR)**: Track clicks and user selection feedback to dynamically fine-tune the reranking algorithm weights.
-- [ ] **Relational Database Migration**: Move from flat CSV files to a scalable PostgreSQL setup to support user registrations, custom collections, and perfume bookmarks.
-- [ ] **Integrated Image API**: Replace Google Image Search redirects with real, high-resolution product photography via dedicated database integrations.
+- [ ] **User Profiles & Relational Storage**: Migrate to PostgreSQL to support user profile registrations, fragrance favorites, and history tracking.
+- [ ] **Olfactory Engine Accuracy**: Fine-tune TF-IDF term weights and similarity functions to yield even higher precision recommendation outputs.
+- [ ] **Up-to-Date Fragrance Catalogs**: Ingest newer and globally diverse fragrance catalogs, focusing on up-to-date niche releases and legendary Middle Eastern scent collections.
+- [ ] **Cross-Platform Mobile Application**: Expand the ecosystem with native Android and iOS apps built with Flutter.
 
 ---
 
