@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sillage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          },
+          colors: {
+            cream: '#F9F8F6',
+            champagne: '#D4AF37',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --theme-rgb: 120, 190, 255;
+      --theme-strong-rgb: 98, 170, 236;
+      --theme-soft-rgb: 228, 246, 251;
+      --theme-ambient-alpha: 0.22;
+      --theme-ambient-mid-alpha: 0.12;
+      --theme-ambient-soft-alpha: 0.18;
+      --glass-bg: rgba(255, 255, 255, 0.58);
+      --glass-bg-strong: rgba(255, 255, 255, 0.74);
+      --glass-border: rgba(255, 255, 255, 0.64);
+      --glass-highlight: rgba(255, 255, 255, 0.8);
+      --glass-shadow: 0 16px 44px rgba(30, 42, 56, 0.08);
+    }
+    body[data-theme="men"] {
+      --theme-rgb: 120, 190, 255;
+      --theme-strong-rgb: 98, 170, 236;
+      --theme-soft-rgb: 228, 246, 251;
+      --theme-ambient-alpha: 0.24;
+      --theme-ambient-mid-alpha: 0.13;
+      --theme-ambient-soft-alpha: 0.2;
+    }
+    body[data-theme="women"] {
+      --theme-rgb: 255, 170, 200;
+      --theme-strong-rgb: 236, 150, 182;
+      --theme-soft-rgb: 250, 235, 242;
+      --theme-ambient-alpha: 0.24;
+      --theme-ambient-mid-alpha: 0.13;
+      --theme-ambient-soft-alpha: 0.2;
+    }
+    /* Paper-like grain (fixed, low opacity) */
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0.045;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    body {
+      transition: background-color 0.35s ease;
+    }
+    .hero-ambient-glow {
+      position: absolute;
+      left: 50%;
+      top: 4.1rem;
+      width: min(46rem, 94vw);
+      height: 21rem;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 9999px;
+      opacity: 0.46;
+      filter: blur(82px);
+      background:
+        radial-gradient(
+          ellipse at 50% 44%,
+          rgba(var(--theme-rgb), var(--theme-ambient-alpha)) 0%,
+          rgba(var(--theme-rgb), var(--theme-ambient-mid-alpha)) 32%,
+          rgba(var(--theme-soft-rgb), var(--theme-ambient-soft-alpha)) 56%,
+          rgba(255, 255, 255, 0.12) 72%,
+          rgba(249, 248, 246, 0) 100%
+        );
+      transition: background 0.35s ease;
+    }
+    .glass-reflection {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .glass-reflection::before {
+      content: '';
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      top: 0;
+      height: 48%;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0.2) 34%,
+        rgba(255, 255, 255, 0.04) 72%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      opacity: 0.46;
+    }
+    .search-capsule {
+      position: relative;
+      border: 1px solid var(--glass-border);
+      background:
+        linear-gradient(180deg, var(--glass-bg-strong) 0%, var(--glass-bg) 100%),
+        radial-gradient(120% 120% at 12% 0%, rgba(var(--theme-rgb), 0.14) 0%, rgba(var(--theme-rgb), 0.03) 48%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(24px) saturate(1.2);
+      backdrop-filter: blur(24px) saturate(1.2);
+      box-shadow:
+        var(--glass-shadow),
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.28);
+      transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.35s ease,
+        border-color 0.4s ease,
+        -webkit-backdrop-filter 0.4s ease,
+        backdrop-filter 0.4s ease;
+    }
+    .search-capsule::before {
+      content: '';
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      top: 2px;
+      height: 44%;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.04));
+      opacity: 0.42;
+    }
+    .search-capsule::after {
+      content: '';
+      position: absolute;
+      inset: 8% 10% auto 10%;
+      height: 62%;
+      border-radius: 9999px;
+      pointer-events: none;
+      background: radial-gradient(80% 120% at 20% 0%, rgba(var(--theme-rgb), 0.12), rgba(var(--theme-rgb), 0));
+      opacity: 0.36;
+      transition: opacity 0.35s ease;
+    }
+    .search-capsule:focus-within {
+      transform: translateY(-1px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.8);
+      -webkit-backdrop-filter: blur(28px) saturate(1.28);
+      backdrop-filter: blur(28px) saturate(1.28);
+      box-shadow:
+        0 24px 56px rgba(36, 49, 66, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.52),
+        0 0 20px rgba(var(--theme-rgb), 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    }
+    .search-capsule:focus-within::before {
+      opacity: 0.52;
+    }
+    .search-capsule:focus-within::after {
+      opacity: 0.52;
+    }
+    .search-theme-btn {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%),
+        rgba(var(--theme-rgb), 0.4);
+      color: rgba(36, 46, 58, 0.98);
+      -webkit-backdrop-filter: blur(14px) saturate(1.45);
+      backdrop-filter: blur(14px) saturate(1.45);
+      box-shadow:
+        0 6px 24px rgba(var(--theme-rgb), 0.27),
+        0 2px 8px rgba(29, 41, 54, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.3s ease,
+        background 0.35s ease,
+        color 0.25s ease;
+    }
+    .search-theme-btn:hover {
+      border-color: rgba(255, 255, 255, 0.42);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.17) 100%),
+        rgba(var(--theme-rgb), 0.44);
+      -webkit-backdrop-filter: blur(14px) saturate(1.5);
+      backdrop-filter: blur(14px) saturate(1.5);
+      box-shadow:
+        0 8px 28px rgba(var(--theme-rgb), 0.3),
+        0 4px 14px rgba(29, 41, 54, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+    }
+    .search-theme-btn:active {
+      transform: scale(0.98);
+    }
+    .toggle-shell-glass {
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.38) 100%),
+        radial-gradient(120% 110% at 12% 0%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 58%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-backdrop-filter: blur(22px) saturate(1.16);
+      backdrop-filter: blur(22px) saturate(1.16);
+      box-shadow:
+        0 12px 30px rgba(30, 43, 57, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.26);
+      transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+    }
+    /* Active segment: stronger internal tint + soft theme glow (projector-friendly) */
+    .toggle-pill-liquid {
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        0 6px 24px rgba(var(--theme-rgb), 0.25),
+        0 1px 4px rgba(28, 40, 54, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%),
+        rgba(var(--theme-rgb), 0.35);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      backdrop-filter: blur(14px) saturate(1.4);
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+    .toggle-pill-liquid::before {
+      content: '';
+      position: absolute;
+      inset: 3px 14% auto 14%;
+      height: 42%;
+      border-radius: 9999px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.08));
+      opacity: 0.46;
+    }
+    .toggle-pill-liquid::after {
+      content: '';
+      position: absolute;
+      inset: 16% 6% 12% 6%;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 32%, rgba(var(--theme-rgb), 0.26) 0%, rgba(var(--theme-rgb), 0.1) 56%, rgba(var(--theme-rgb), 0) 74%);
+      opacity: 0.54;
+    }
+    .boutique-card {
+      transition:
+        transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.35s ease;
+    }
+    .boutique-card:hover {
+      transform: translateY(-5px);
+    }
+    .boutique-card-surface {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 48%, rgba(255, 255, 255, 0.3) 100%),
+        radial-gradient(130% 140% at 12% 0%, rgba(var(--theme-rgb), 0.09) 0%, rgba(var(--theme-rgb), 0.025) 56%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(40px) saturate(1.18);
+      backdrop-filter: blur(40px) saturate(1.18);
+      box-shadow:
+        0 14px 38px rgba(29, 40, 56, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.74),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.26);
+      transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.4s ease,
+        border-color 0.45s ease,
+        -webkit-backdrop-filter 0.45s ease,
+        backdrop-filter 0.45s ease;
+    }
+    .boutique-card-surface::before {
+      content: '';
+      position: absolute;
+      left: 5%;
+      right: 5%;
+      top: 0;
+      height: 38%;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0));
+      opacity: 0.4;
+    }
+    .boutique-card-surface::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(110% 90% at 12% 0%, rgba(var(--theme-rgb), 0.08) 0%, rgba(var(--theme-rgb), 0) 62%);
+      opacity: 0.2;
+      transition: opacity 0.35s ease;
+    }
+    .boutique-card:hover .boutique-card-surface {
+      border-color: rgba(255, 255, 255, 0.78);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.46) 52%, rgba(255, 255, 255, 0.32) 100%),
+        radial-gradient(130% 140% at 10% 0%, rgba(var(--theme-rgb), 0.13) 0%, rgba(var(--theme-rgb), 0.04) 56%, rgba(255, 255, 255, 0) 100%);
+      -webkit-backdrop-filter: blur(46px) saturate(1.24);
+      backdrop-filter: blur(46px) saturate(1.24);
+      box-shadow:
+        0 20px 50px rgba(28, 39, 56, 0.14),
+        0 0 0 1px rgba(var(--theme-rgb), 0.06),
+        0 0 14px rgba(var(--theme-rgb), 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.32);
+    }
+    .boutique-card:hover .boutique-card-surface::before {
+      opacity: 0.48;
+    }
+    .boutique-card:hover .boutique-card-surface::after {
+      opacity: 0.32;
+    }
+    .boutique-card:hover .result-name {
+      color: #2c3847;
+    }
+    .boutique-card:hover .result-icon-wrap {
+      transform: translateY(-2px);
+    }
+    .featured-result .boutique-card-surface {
+      border-color: rgba(255, 255, 255, 0.8);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 52%, rgba(255, 255, 255, 0.35) 100%),
+        radial-gradient(130% 140% at 10% 0%, rgba(var(--theme-rgb), 0.12) 0%, rgba(var(--theme-rgb), 0.035) 58%, rgba(255, 255, 255, 0) 100%);
+      box-shadow:
+        0 20px 52px rgba(25, 36, 53, 0.14),
+        0 0 12px rgba(var(--theme-rgb), 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.32);
+      -webkit-backdrop-filter: blur(44px) saturate(1.22);
+      backdrop-filter: blur(44px) saturate(1.22);
+    }
+    /* Luxury wordmark: Great Vibes + deep espresso + whisper of champagne */
+    .logo-sillage {
+      font-family: 'Great Vibes', cursive;
+      font-weight: 400;
+      color: #2d1b14;
+      letter-spacing: 0.05em;
+      line-height: 1.05;
+      text-shadow:
+        0 1px 0 rgba(212, 175, 55, 0.2),
+        0 2px 0 rgba(212, 175, 55, 0.06),
+        0 3px 26px rgba(45, 27, 20, 0.12);
+    }
+    .logo-sillage-cap {
+      display: inline-block;
+      font-size: 1.18em;
+      line-height: 0.9;
+      margin-right: 0.04em;
+      vertical-align: -0.03em;
+    }
+  </style>
+</head>
+<body data-theme="men" class="min-h-screen bg-cream font-sans text-stone-700 antialiased">
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <div class="relative z-50 mx-auto max-w-3xl px-4 pb-24 pt-12 sm:px-6 sm:pt-16">
+    <div class="hero-ambient-glow" aria-hidden="true"></div>
+    <header class="relative z-10 mb-10 text-center sm:mb-12">
+      <h1 class="logo-sillage text-8xl sm:text-9xl" aria-label="Sillage">
+        <span class="logo-sillage-cap">S</span>illage
+      </h1>
+      <p class="mx-auto mb-1 mt-4 max-w-md text-sm leading-relaxed text-stone-500 sm:mt-5 sm:text-base">
+        Describe your mood, an occasion, or a favorite note. I’ll find your perfect scent trail.
+      </p>
+    </header>
+
+    <div class="relative z-10 mx-auto max-w-2xl space-y-5 sm:space-y-6">
+      <!-- Glass search capsule -->
+      <div
+        class="search-capsule glass-reflection rounded-full"
+      >
+        <div class="relative flex items-center py-1 pl-5 pr-2">
+          <span class="pointer-events-none flex shrink-0 text-stone-400" aria-hidden="true">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            id="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Search by vibe or perfume name…"
+            class="min-w-0 flex-1 border-0 bg-transparent py-3.5 pl-3 pr-3 text-base text-stone-800 placeholder:text-stone-400 outline-none ring-0"
+            aria-label="Search perfumes"
+          />
+          <button
+            type="button"
+            id="search-btn"
+            class="search-theme-btn shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Sliding pill gender -->
+      <fieldset class="flex justify-center">
+        <legend class="sr-only">Gender filter</legend>
+        <div
+          id="gender-shell"
+          class="toggle-shell-glass glass-reflection relative flex h-11 w-full max-w-[220px] rounded-full p-1 sm:max-w-[240px]"
+          role="group"
+          aria-label="Gender toggle"
+        >
+          <div
+            id="gender-pill"
+            class="toggle-pill-liquid pointer-events-none absolute left-0 top-1 rounded-full"
+            aria-hidden="true"
+          ></div>
+          <button type="button" data-gender="men" class="gender-btn relative z-10 flex-1 basis-0 rounded-full py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800">
+            Men
+          </button>
+          <button type="button" data-gender="women" class="gender-btn relative z-10 flex-1 basis-0 rounded-full py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800">
+            Women
+          </button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div id="status" class="mt-10 hidden text-center text-sm text-stone-500" role="status" aria-live="polite"></div>
+
+    <div id="results" class="mt-10 space-y-4" aria-live="polite"></div>
+
+    <div id="load-more-wrap" class="mt-12 hidden flex justify-center">
+      <button
+        type="button"
+        id="load-more-btn"
+        class="rounded-full border border-white/60 bg-white/40 px-10 py-3 text-sm font-semibold text-stone-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition hover:-translate-y-0.5 hover:bg-white/55 hover:shadow-[0_12px_36px_rgb(0,0,0,0.06)]"
+      >
+        Load 5 More
+      </button>
+    </div>
+  </div>
+
+  <template id="bottle-icon">
+    <div class="flex h-10 w-7 shrink-0 items-center justify-center text-stone-300 group-hover:text-stone-400" aria-hidden="true">
+      <svg class="h-9 w-4" viewBox="0 0 16 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 2v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        <rect x="4.5" y="5" width="7" height="24" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none" />
+      </svg>
+    </div>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    (function () {
+      const input = document.getElementById('search-input');
+      const searchBtn = document.getElementById('search-btn');
+      const resultsEl = document.getElementById('results');
+      const statusEl = document.getElementById('status');
+      const loadMoreWrap = document.getElementById('load-more-wrap');
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      const genderShell = document.getElementById('gender-shell');
+      const genderPill = document.getElementById('gender-pill');
+      const genderBtns = document.querySelectorAll('.gender-btn');
+      const bottleTemplate = document.getElementById('bottle-icon');
+
+      let selectedGender = 'men';
+      let limit = 5;
+      let debounceId = null;
+      const DEBOUNCE_MS = 320;
+
+      function genderIndex() {
+        return selectedGender === 'women' ? 1 : 0;
+      }
+
+      function layoutGenderPill(animate) {
+        if (!genderShell || !genderPill) return;
+        const pad = 4;
+        const w = genderShell.offsetWidth;
+        const inner = w - pad * 2;
+        const seg = inner / 2;
+        const x = pad + genderIndex() * seg;
+        const h = genderShell.offsetHeight - pad * 2;
+        const props = { x, width: seg, height: h, top: pad, borderRadius: 9999 };
+        if (typeof gsap !== 'undefined' && animate) {
+          gsap.to(genderPill, { ...props, duration: 0.38, ease: 'power2.inOut' });
+        } else if (typeof gsap !== 'undefined') {
+          gsap.set(genderPill, props);
+        } else {
+          genderPill.style.left = '0';
+          genderPill.style.transform = 'translateX(' + x + 'px)';
+          genderPill.style.width = seg + 'px';
+          genderPill.style.height = h + 'px';
+          genderPill.style.top = pad + 'px';
+        }
+      }
+
+      function syncTheme() {
+        document.body.setAttribute('data-theme', selectedGender);
+      }
+
+      function setGenderUI(animatePill) {
+        syncTheme();
+        genderBtns.forEach((btn) => {
+          const on = btn.dataset.gender === selectedGender;
+          btn.classList.toggle('text-stone-900', on);
+          btn.classList.toggle('font-semibold', on);
+          btn.classList.toggle('text-stone-500', !on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        layoutGenderPill(animatePill);
+      }
+
+      genderBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectedGender = btn.dataset.gender;
+          limit = 5;
+          setGenderUI(true);
+          runSearch();
+        });
+      });
+
+      window.addEventListener('resize', function () {
+        layoutGenderPill(false);
+      });
+
+      setGenderUI(false);
+      requestAnimationFrame(function () {
+        layoutGenderPill(false);
+      });
+
+      function showStatus(msg, isError) {
+        if (!msg) {
+          statusEl.classList.add('hidden');
+          statusEl.textContent = '';
+          return;
+        }
+        statusEl.textContent = msg;
+        statusEl.classList.remove('hidden');
+        statusEl.classList.toggle('text-red-600/90', !!isError);
+        statusEl.classList.toggle('text-stone-500', !isError);
+      }
+
+      function buildSearchURL() {
+        const q = input.value.trim();
+        const params = new URLSearchParams();
+        params.set('query', q);
+        params.set('limit', String(limit));
+        if (selectedGender === 'men') params.set('gender', 'Man');
+        else params.set('gender', 'Women');
+        return '/search?' + params.toString();
+      }
+
+      function cloneBottle() {
+        return bottleTemplate.content.cloneNode(true);
+      }
+
+      function animateResultCards(cards) {
+        if (!cards.length || typeof gsap === 'undefined') return;
+        gsap.from(cards, {
+          y: 34,
+          opacity: 0,
+          duration: 0.52,
+          stagger: 0.07,
+          ease: 'power3.out',
+        });
+      }
+
+      function deriveScentTags(result) {
+        const tags = [];
+        const seen = new Set();
+
+        function addTag(tag) {
+          if (!tag) return;
+          const t = String(tag).trim();
+          if (!t) return;
+          const key = t.toLowerCase();
+          if (seen.has(key)) return;
+          seen.add(key);
+          tags.push(t);
+        }
+
+        function seasonTag(rawSeason) {
+          const s = String(rawSeason || '').trim().toLowerCase();
+          if (!s || s === 'nan' || s === '—') return '';
+          if (s.includes('winter')) return 'Winter';
+          if (s.includes('summer')) return 'Summer';
+          if (s.includes('spring')) return 'Spring';
+          if (s.includes('fall') || s.includes('autumn')) return 'Fall';
+          if (s.includes('all')) return 'All Season';
+          return String(rawSeason).trim();
+        }
+
+        const season = seasonTag(result.season);
+        addTag(season);
+
+        const perfumeName = String(result.perfume_name || '').toLowerCase();
+        const rules = [
+          { re: /\boud\b/, tag: 'Oud' },
+          { re: /\brose\b/, tag: 'Rose' },
+          { re: /\bvanilla\b/, tag: 'Vanilla' },
+          { re: /\b(marine|sea)\b/, tag: 'Marine' },
+          { re: /\bfresh\b/, tag: 'Fresh' },
+          { re: /\b(spice|spicy)\b/, tag: 'Spicy' },
+          { re: /\b(wood|woody|cedar)\b/, tag: 'Woody' },
+          { re: /\bamber\b/, tag: 'Amber' },
+          { re: /\bmusk\b/, tag: 'Musk' },
+          { re: /\b(floral|flower)\b/, tag: 'Floral' },
+          { re: /\b(citrus|lemon|bergamot|orange)\b/, tag: 'Citrus' },
+        ];
+        rules.forEach((rule) => {
+          if (rule.re.test(perfumeName)) addTag(rule.tag);
+        });
+
+        const seasonKey = season.toLowerCase();
+        let defaults = ['Balanced', 'Elegant'];
+        if (seasonKey.includes('winter')) defaults = ['Warm', 'Cozy'];
+        else if (seasonKey.includes('summer')) defaults = ['Fresh', 'Airy'];
+        else if (seasonKey.includes('spring')) defaults = ['Soft', 'Bright'];
+        else if (seasonKey.includes('fall')) defaults = ['Rich', 'Smooth'];
+
+        defaults.forEach(addTag);
+        addTag('Refined');
+
+        return tags.slice(0, 3);
+      }
+
+      function renderResults(data) {
+        resultsEl.innerHTML = '';
+        const items = data.results || [];
+
+        if (!input.value.trim()) {
+          loadMoreWrap.classList.add('hidden');
+          return;
+        }
+
+        if (items.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'text-center text-stone-500 py-14';
+          empty.textContent = 'No matches yet — try another vibe or name.';
+          resultsEl.appendChild(empty);
+          if (typeof gsap !== 'undefined') {
+            gsap.from(empty, { opacity: 0, y: 12, duration: 0.4, ease: 'power2.out' });
+          }
+          loadMoreWrap.classList.add('hidden');
+          return;
+        }
+
+        const canLoadMore = items.length > 0 && items.length === data.limit && data.limit < 100;
+        const cardEls = [];
+
+        items.forEach((r, idx) => {
+          const card = document.createElement('article');
+          card.className =
+            'boutique-card group cursor-default rounded-2xl';
+          if (idx === 0) card.classList.add('featured-result');
+
+          const surface = document.createElement('div');
+          surface.className =
+            'boutique-card-surface flex gap-4 rounded-2xl p-5 sm:p-[1.35rem]';
+
+          const iconWrap = document.createElement('div');
+          iconWrap.className = 'result-icon-wrap flex shrink-0 items-start pt-0.5 transition-transform duration-300 ease-out';
+          iconWrap.appendChild(cloneBottle());
+
+          const body = document.createElement('div');
+          body.className = 'min-w-0 flex-1';
+
+          const name = document.createElement('a');
+          name.href = r.image_search_url || '#';
+          name.target = '_blank';
+          name.rel = 'noopener noreferrer';
+          name.className =
+            'result-name font-sans text-lg font-semibold text-stone-900 transition-colors duration-300 hover:text-stone-700 break-words decoration-stone-300 underline-offset-4 hover:underline';
+          name.textContent = r.perfume_name || 'Unknown';
+          body.appendChild(name);
+
+          const meta = document.createElement('p');
+          meta.className = 'mt-1 text-sm text-stone-500';
+          const brand = r.brand && String(r.brand) !== 'nan' ? r.brand : '—';
+          const season = r.season || '—';
+          meta.textContent = brand + ' · ' + season;
+          body.appendChild(meta);
+
+          const tagsLine = document.createElement('p');
+          tagsLine.className = 'mt-2 truncate text-[0.72rem] tracking-[0.02em] text-stone-400';
+          tagsLine.textContent = deriveScentTags(r).join(' \u00b7 ');
+          body.appendChild(tagsLine);
+
+          if (r.similarity != null) {
+            const sim = document.createElement('p');
+            sim.className = 'mt-2 text-xs tracking-wide text-stone-400';
+            sim.textContent = 'Match · ' + Number(r.similarity).toFixed(3);
+            body.appendChild(sim);
+          }
+
+          surface.appendChild(iconWrap);
+          surface.appendChild(body);
+          card.appendChild(surface);
+          resultsEl.appendChild(card);
+          cardEls.push(card);
+        });
+
+        animateResultCards(cardEls);
+
+        if (canLoadMore) loadMoreWrap.classList.remove('hidden');
+        else loadMoreWrap.classList.add('hidden');
+      }
+
+      async function runSearch() {
+        const q = input.value.trim();
+        if (!q) {
+          showStatus('');
+          resultsEl.innerHTML = '';
+          loadMoreWrap.classList.add('hidden');
+          return;
+        }
+
+        showStatus('Searching…');
+        try {
+          const res = await fetch(buildSearchURL());
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Search failed');
+          }
+          showStatus('');
+          renderResults(data);
+        } catch (e) {
+          showStatus(e.message || 'Something went wrong.', true);
+          resultsEl.innerHTML = '';
+          loadMoreWrap.classList.add('hidden');
+        }
+      }
+
+      function scheduleSearch() {
+        limit = 5;
+        clearTimeout(debounceId);
+        debounceId = setTimeout(runSearch, DEBOUNCE_MS);
+      }
+
+      input.addEventListener('input', scheduleSearch);
+      searchBtn.addEventListener('click', () => {
+        limit = 5;
+        clearTimeout(debounceId);
+        runSearch();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          limit = 5;
+          clearTimeout(debounceId);
+          runSearch();
+        }
+      });
+
+      loadMoreBtn.addEventListener('click', () => {
+        limit += 5;
+        runSearch();
+      });
+    })();
+  </script>
+</body>
+</html>
