@@ -63,14 +63,36 @@ Sillage/
 
 ```mermaid
 graph TD
-    Client["User Interface (Web Browser)"] <-->|1. Interactions & Search Queries| FE["Next.js 15 Frontend Client"]
-    FE <-->|2. JSON REST Requests / Responses| BE["Django REST Framework API"]
+    %% Define Styles
+    classDef client fill:#daeaf6,stroke:#7aafdb,stroke-width:2px,color:#2c3e2d;
+    classDef api fill:#dde8d6,stroke:#8a9a8c,stroke-width:2px,color:#2c3e2d;
+    classDef ml fill:#e6dae8,stroke:#c97aa0,stroke-width:2px,color:#2c3e2d;
+    classDef data fill:#f5e3cc,stroke:#e8b0c8,stroke-width:2px,color:#2c3e2d;
 
-    subgraph backend ["Django Backend Application"]
-        BE["Django REST Framework API"] -->|3. Lazily Loads Models & Processes Query| MLService["Olfactory Recommendation Engine"]
-        MLService -->|4. Accesses Pipeline| Model["scikit-learn TF-IDF + KNN Model"]
-        MLService -->|5. Queries Details| Data["Cleaned Perfumes Database (.csv)"]
+    %% Elements
+    subgraph ClientLayer ["1. Frontend Client Layer (Next.js 15)"]
+        Browser(["User Web Browser"]) <-->|User Interactions & Mood Input| FE["Next.js App Client"]
     end
+
+    subgraph BackendLayer ["2. API & Service Layer (Django REST Framework)"]
+        BE["Django REST API<br/>/api/search/"] -->|Route Query| DRFServices["Recommendation Service<br/>(services.py)"]
+    end
+
+    subgraph MLLayer ["3. Olfactory Recommendation Engine & Data"]
+        DRFServices -->|Retrieve & Vectorize| TFIDF["TF-IDF Vectorizer<br/>(perfumes_tfidf.joblib)"]
+        TFIDF -->|Cosine Similarity Search| KNN["KNN Model<br/>(perfumes_knn.joblib)"]
+        KNN -->|Rank & Filter Candidate Matches| Reranker["Intent-Aware Rerank Engine<br/>(Verbatim Rules / Boosts)"]
+        Reranker -->|Extract Details| Database[("Olfactory Database<br/>(perfumes_df.joblib / .csv)")]
+    end
+
+    %% Cross-layer links
+    FE <-->|Async REST HTTP Request / JSON Response| BE
+
+    %% Apply Styles
+    class Browser,FE client;
+    class BE,DRFServices api;
+    class TFIDF,KNN,Reranker ml;
+    class Database data;
 ```
 
 ---
