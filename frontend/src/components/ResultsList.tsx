@@ -1,55 +1,105 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
+import React from "react";
 import type { PerfumeResult } from "@/lib/api";
+import { getCardColor } from "@/lib/scentUtils";
 import ResultCard from "./ResultCard";
 
 interface ResultsListProps {
   results: PerfumeResult[];
   query: string;
+  error: string | null;
+  loading: boolean;
 }
 
-export default function ResultsList({ results, query }: ResultsListProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const prevLengthRef = useRef(0);
+/**
+ * Determine the card variant and bento CSS class for a given index.
+ * Cards are grouped in sets of 4 with alternating layout patterns.
+ */
+function getBentoLayout(globalIndex: number): {
+  variant: "large" | "wide" | "small";
+  className: string;
+} {
+  const groupIndex = globalIndex % 8; // 2 groups of 4 = 8 pattern cycle
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll(".boutique-card");
-    if (cards.length > 0 && cards.length !== prevLengthRef.current) {
-      gsap.from(cards, {
-        y: 34,
-        opacity: 0,
-        duration: 0.52,
-        stagger: 0.07,
-        ease: "power3.out",
-      });
-    }
-    prevLengthRef.current = cards.length;
-  }, [results]);
+  const LAYOUT: Record<number, { variant: "large" | "wide" | "small"; className: string }> = {
+    // Group A (first 4)
+    0: { variant: "large", className: "bento-item-0" },
+    1: { variant: "wide", className: "bento-item-1" },
+    2: { variant: "small", className: "bento-item-2" },
+    3: { variant: "small", className: "bento-item-3" },
+    // Group B (next 4, mirrored)
+    4: { variant: "wide", className: "bento-item-4" },
+    5: { variant: "large", className: "bento-item-5" },
+    6: { variant: "small", className: "bento-item-6" },
+    7: { variant: "small", className: "bento-item-7" },
+  };
 
+  return LAYOUT[groupIndex];
+}
+
+export default function ResultsList({
+  results,
+  query,
+  error,
+  loading,
+}: ResultsListProps) {
+  // Error state
+  if (error) {
+    return (
+      <p className="error-state">
+        Could not reach the scent trail. Check the backend connection.
+      </p>
+    );
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <p className="empty-state">Searching…</p>
+    );
+  }
+
+  // No query yet
   if (!query.trim()) {
     return null;
   }
 
+  // No results
   if (results.length === 0) {
     return (
-      <p className="text-center text-stone-500 py-14">
-        No matches yet — try another vibe or name.
+      <p className="empty-state">
+        No matches yet — try another mood, note, or name.
       </p>
     );
   }
 
   return (
-    <div ref={containerRef} className="space-y-4">
-      {results.map((r, idx) => (
-        <ResultCard
-          key={`${r.perfume_name}-${r.brand}-${idx}`}
-          result={r}
-          isFeatured={idx === 0}
-        />
-      ))}
-    </div>
+    <>
+      {/* Section heading */}
+      <div className="mb-8 mt-2">
+        <h2 className="section-heading">Curated for you</h2>
+        <p className="section-subtitle">
+          Scent stories selected to match your mood and notes.
+        </p>
+      </div>
+
+      {/* Bento grid */}
+      <div className="bento-grid" aria-live="polite">
+        {results.map((r, idx) => {
+          const layout = getBentoLayout(idx);
+          return (
+            <div key={`${r.perfume_name}-${r.brand}-${idx}`} className={layout.className}>
+              <ResultCard
+                result={r}
+                variant={layout.variant}
+                color={getCardColor(idx)}
+                animationDelay={idx * 80}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

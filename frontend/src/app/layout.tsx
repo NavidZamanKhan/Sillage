@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Great_Vibes } from "next/font/google";
+import { Inter, Playfair_Display, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,9 +16,9 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const greatVibes = Great_Vibes({
+const dmSerif = DM_Serif_Display({
   subsets: ["latin"],
-  variable: "--font-great-vibes",
+  variable: "--font-dm-serif",
   weight: "400",
   display: "swap",
 });
@@ -26,7 +26,7 @@ const greatVibes = Great_Vibes({
 export const metadata: Metadata = {
   title: "Sillage — AI Perfume Recommendations",
   description:
-    "Describe your mood, an occasion, or a favorite note. Sillage finds your perfect scent trail using AI-powered recommendations.",
+    "Describe a mood, a note, a season, or a vibe, and let Sillage hand-pick fragrances written just for you. AI-powered perfume discovery.",
 };
 
 export default function RootLayout({
@@ -37,10 +37,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        data-theme="men"
-        className={`${inter.variable} ${playfair.variable} ${greatVibes.variable} min-h-screen bg-[#F9F8F6] font-[family-name:var(--font-inter)] text-stone-700 antialiased`}
+        className={`${inter.variable} ${playfair.variable} ${dmSerif.variable} min-h-screen font-[family-name:var(--font-inter)] antialiased`}
+        style={{ backgroundColor: "#f3f5ec", color: "#2c3e2d" }}
       >
-        <div className="grain-overlay" aria-hidden="true" />
         {children}
       </body>
     </html>
