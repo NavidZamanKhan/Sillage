@@ -66,8 +66,8 @@ graph TD
     Client["User Interface (Web Browser)"] <-->|1. Interactions & Search Queries| FE["Next.js 15 Frontend Client"]
     FE <-->|2. JSON REST Requests / Responses| BE["Django REST Framework API"]
 
-    subgraph Django Backend Application
-        BE -->|3. Lazily Loads Models & Processes Query| MLService["Olfactory Recommendation Engine"]
+    subgraph backend ["Django Backend Application"]
+        BE["Django REST Framework API"] -->|3. Lazily Loads Models & Processes Query| MLService["Olfactory Recommendation Engine"]
         MLService -->|4. Accesses Pipeline| Model["scikit-learn TF-IDF + KNN Model"]
         MLService -->|5. Queries Details| Data["Cleaned Perfumes Database (.csv)"]
     end
