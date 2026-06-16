@@ -1,6 +1,62 @@
 # Sillage – AI-Based Perfume Recommendation System
 
+> *The scent trail continues.*
+
 An AI-powered web app that recommends perfumes from natural language queries such as moods, notes, seasons, or occasions.
+
+---
+
+## Sillage 2.0 Architecture
+
+Sillage 2.0 splits the original Flask monolith into a modern **Django + Next.js** stack:
+
+```
+Sillage/
+├── backend/          # Django + Django REST Framework API
+│   ├── config/       # Django settings, URLs, WSGI/ASGI
+│   ├── recommendations/  # API app (views, serializers, services)
+│   └── ml/           # ML engine (unchanged) + data artifacts
+├── frontend/         # Next.js (App Router, TypeScript, Tailwind)
+│   ├── src/app/      # Pages and global styles
+│   ├── src/components/   # React components
+│   └── src/lib/      # API client
+├── legacy_flask/     # Backup of original Flask app
+├── app.py            # Original Flask app (still works)
+├── train_model.py    # ML engine (untouched)
+└── README.md
+```
+
+### Quick Start (Sillage 2.0)
+
+**Backend:**
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS/Linux
+pip install -r requirements.txt
+python manage.py runserver
+```
+
+**Frontend** (in a separate terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open:
+- **Frontend:** [http://localhost:3000](http://localhost:3000)
+- **API directly:** [http://127.0.0.1:8000/api/search/?query=rose&gender=Man&limit=5](http://127.0.0.1:8000/api/search/?query=rose&gender=Man&limit=5)
+
+### API Endpoints
+
+```
+GET  /api/search/?query=rose&gender=Man&limit=5
+POST /api/search/   { "query": "rose", "gender": "Man", "limit": 5 }
+```
 
 ---
 
@@ -20,18 +76,22 @@ Under the hood, the app converts perfume metadata (notes, accords, brand, season
 - **VIP brand prioritization** – niche and premium houses (Amouage, Creed, MFK, Parfums de Marly, Xerjoff, Tom Ford, Dior, Chanel, etc.) are boosted, especially on luxury-intent queries; low-tier brands are penalized.
 - **Perfume-name similarity** – typing an actual perfume name (e.g. _"creed aventus"_) returns its nearest neighbors by scent DNA.
 - **Weighted feature engineering** – notes and accords dominate the vector representation over names and brands.
-- **Clean UI** – single-page Tailwind-based interface served by Flask.
+- **Clean UI** – glassmorphism Tailwind interface with gender-themed ambient glow.
 
 ---
 
 ## Tech Stack
 
-- **Language:** Python 3.10+
-- **Backend:** Flask
+**Sillage 2.0:**
+- **Backend:** Django + Django REST Framework
+- **Frontend:** Next.js (App Router, TypeScript, Tailwind CSS)
 - **Machine Learning:** scikit-learn (`TfidfVectorizer`, `NearestNeighbors` with cosine metric)
 - **Data:** pandas, NumPy
 - **Persistence:** joblib (model artifacts)
-- **Frontend:** HTML, Tailwind CSS (via CDN), vanilla JavaScript (Fetch API)
+
+**Legacy (v1):**
+- **Backend:** Flask
+- **Frontend:** HTML, Tailwind CSS (via CDN), vanilla JavaScript
 
 ---
 
@@ -104,72 +164,18 @@ After KNN retrieval, `rerank_candidates` adds bonuses when a candidate's notes, 
 
 ---
 
-## Installation & Setup
+## Legacy Flask Setup
 
-### 1. Clone the repository
-
-```bash
-git clone <your-repo-url>
-cd fragrance_finder
-```
-
-### 2. Create a virtual environment (recommended)
-
-**Windows (PowerShell):**
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-**macOS / Linux:**
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-The minimum packages required by the app:
+The original Flask app still works at the project root:
 
 ```bash
 pip install flask pandas numpy scikit-learn joblib
-```
-
-Or install the full pinned environment:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. (Optional) Rebuild the cleaned dataset
-
-Only needed if you want to regenerate `cleaned_perfumes.csv` from the raw `fra_perfumes.csv`:
-
-```bash
-python prepare_data.py
-```
-
-### 5. Train the model
-
-Fits TF-IDF + KNN on `cleaned_perfumes.csv` and writes three artifacts:
-
-- `perfumes_df.joblib`
-- `perfumes_tfidf.joblib`
-- `perfumes_knn.joblib`
-
-```bash
-python train_model.py
-```
-
-### 6. Run the web app
-
-```bash
 python app.py
 ```
 
-Then open [http://127.0.0.1:5000/](http://127.0.0.1:5000/) in your browser.
+Then open [http://127.0.0.1:5000/](http://127.0.0.1:5000/).
+
+A backup of the original Flask files is also in `legacy_flask/`.
 
 ---
 
@@ -186,38 +192,6 @@ Optional controls:
 
 - **Gender filter:** `men`, `women`, or both.
 - **Limit:** how many results to return (default 5).
-
-The app also exposes a JSON API:
-
-```
-GET /search?query=dark+oud+winter&gender=men&limit=5
-```
-
----
-
-## Project Structure
-
-```
-fragrance_finder/
-├── app.py                  # Flask server + /search JSON API
-├── train_model.py          # TF-IDF + KNN training, query parsing, reranking
-├── prepare_data.py         # Cleans fra_perfumes.csv into cleaned_perfumes.csv
-├── requirements.txt        # Python dependencies
-├── fra_perfumes.csv        # Raw Fragrantica dataset
-├── cleaned_perfumes.csv    # Preprocessed dataset used for training
-├── perfumes_df.joblib      # Saved dataframe with helper columns
-├── perfumes_tfidf.joblib   # Saved TF-IDF vectorizer
-├── perfumes_knn.joblib     # Saved NearestNeighbors model
-└── templates/
-    └── index.html          # Single-page Tailwind UI
-```
-
-Key files at a glance:
-
-- **`app.py`** – Flask routes (`/` serves the UI, `/search` returns JSON results). Loads the trained artifacts at startup.
-- **`train_model.py`** – Builds weighted metadata, fits TF-IDF + KNN, and contains the query parser and reranker (`parse_query`, `rerank_candidates`, `get_recommendations`).
-- **`prepare_data.py`** – Column resolution, note parsing from descriptions, and season/time-of-day inference.
-- **`templates/index.html`** – Frontend that calls `/search` and renders results.
 
 ---
 
@@ -239,6 +213,7 @@ Key files at a glance:
 - **Hybrid retrieval** combining dense embeddings with the current TF-IDF signal.
 - **Richer UI** – faceted filters for brand, season, accord families, and price tier.
 - **Real bottle images** via a licensed image source instead of Google search links.
+- **PostgreSQL database** – persistent storage for user data, favorites, and analytics.
 
 ---
 
