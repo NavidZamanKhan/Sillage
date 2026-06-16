@@ -38,6 +38,12 @@ Sillage/
 │   │   ├── views.py          # API handlers (GET / POST support)
 │   │   └── serializers.py    # Request validation and serialization
 │   ├── ml/                   # Machine learning entrypoints & model artifacts
+│   │   ├── cleaned_perfumes.csv
+│   │   ├── fra_perfumes.csv
+│   │   ├── perfumes_df.joblib
+│   │   ├── perfumes_knn.joblib
+│   │   ├── perfumes_tfidf.joblib
+│   │   ├── prepare_data.py
 │   │   └── train_model.py    # Vectorizer and KNN training scripts
 │   └── requirements.txt      # Backend dependencies
 │
@@ -48,8 +54,8 @@ Sillage/
 │   │   └── lib/              # Client-side API consumers
 │   └── package.json          # Node dependencies & scripts
 │
-├── legacy_flask/             # Backup directory containing v1.0 source code
-├── train_model.py            # Global ML training script wrapper
+├── legacy_flask/             # Legacy monolithic directory
+│   └── archive/              # Safe archival of Flask-era source code and files
 └── README.md                 # You are here
 ```
 
@@ -122,11 +128,13 @@ Once candidates are retrieved, a custom reranking function dynamically adjusts s
 
 ## Premium Next-Gen Frontend UI
 
-Sillage 2.0 features a gorgeous, bespoke web experience built on the philosophy of **luxury glassmorphism**:
+Sillage 2.0 features a gorgeous, bespoke web experience built on the philosophy of a **Light Pastel Bento Grid** layout:
 
-- **Gender-Themed Ambient Glows**: Smooth background radial gradients that adapt visually to your active search settings (deep, luxurious blue glow for masculine searches, and soft, elegant rose-gold glow for feminine searches).
-- **Cinematic Micro-Animations**: Interactive buttons, transitions, and hover-triggered glass overlays powered by **GSAP** (GreenSock Animation Platform) for native-feeling fluid motion.
-- **Premium Typography**: Built using variable Google Fonts featuring _Playfair Display_ for the logo/headings and _Inter_ for legible metadata details.
+- **Luxury Paper White Background**: A near-white `#fafaf8` backdrop providing a high-end, clean, and editorial visual experience.
+- **Bespoke Pastel Card Palette**: Recommendation cards automatically cycle through a curated set of calm, harmonious pastel tones (powder blue, soft sage, muted lavender, warm peach, dusty blush, cream beige).
+- **Structured Repeating Bento Pattern**: A balanced 3-column bento layout featuring alternating featured (Large 2x2), standard (1x1), wide (2x1), and tall (1x2) cards that interlock cleanly with no awkward gaps.
+- **Olfactory Exploration Link**: Recommendation cards act as direct links to Google image searches for the fragrance, accompanied by a micro-animated "Explore ↗" indicator that reacts elegantly on hover.
+- **Responsive Viewport Overrides**: Fully responsive overrides adjusting to a balanced 2-column grid on tablets and a clean 1-column stacked flow on mobile screens.
 
 ---
 
@@ -164,8 +172,8 @@ python manage.py runserver 8000
 The Django service runs locally at `http://127.0.0.1:8000/`.
 
 > [!NOTE]  
-> If model artifacts are missing, run the training pipeline first:
-> `python manage.py shell -c "import train_model; train_model.train_and_save()"` or simply execute `python train_model.py` at the project root.
+> If model artifacts are missing, run the training pipeline first from the `backend/` directory:
+> `python manage.py shell -c "import train_model; train_model.train_and_save()"` or execute the script directly inside the canonical `backend/ml/` folder.
 
 ---
 
@@ -255,17 +263,20 @@ The intelligence layer of Sillage is built on top of a Kaggle Fragrantica datase
 
 ## Legacy v1.0 Setup
 
-If you wish to run the original Flask-based monolithic setup, you can do so directly from the root folder:
+If you wish to run the original Flask-based monolithic setup, you can do so by navigating to the legacy archive directory:
 
 ```bash
+# Navigate to the archive folder
+cd legacy_flask/archive
+
 # Install base requirements
-pip install flask pandas numpy scikit-learn joblib
+pip install -r requirements.txt
 
 # Run the Flask entrypoint
 python app.py
 ```
 
-Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** to experience the monolithic version. Backed-up files are stored safely within `/legacy_flask/`.
+Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** to experience the monolithic version. Backed-up files are stored safely within `/legacy_flask/archive/`.
 
 ---
 
