@@ -14,28 +14,47 @@ interface ResultsListProps {
 
 /**
  * Determine the card variant and bento CSS class for a given index.
- * Cards are grouped in sets of 4 with alternating layout patterns.
+ * Cards are grouped in sets of 8 with a structured, repeating bento pattern.
  */
 function getBentoLayout(globalIndex: number): {
-  variant: "large" | "wide" | "small";
+  variant: "large" | "wide" | "standard" | "tall";
   className: string;
+  style?: React.CSSProperties;
 } {
-  const groupIndex = globalIndex % 8; // 2 groups of 4 = 8 pattern cycle
+  const cycle = Math.floor(globalIndex / 8);
+  const localIndex = globalIndex % 8;
 
-  const LAYOUT: Record<number, { variant: "large" | "wide" | "small"; className: string }> = {
-    // Group A (first 4)
-    0: { variant: "large", className: "bento-item-0" },
-    1: { variant: "wide", className: "bento-item-1" },
-    2: { variant: "small", className: "bento-item-2" },
-    3: { variant: "small", className: "bento-item-3" },
-    // Group B (next 4, mirrored)
-    4: { variant: "wide", className: "bento-item-4" },
-    5: { variant: "large", className: "bento-item-5" },
-    6: { variant: "small", className: "bento-item-6" },
-    7: { variant: "small", className: "bento-item-7" },
+  const VARIANTS: Record<number, "large" | "wide" | "standard" | "tall"> = {
+    0: "large",
+    1: "standard",
+    2: "standard",
+    3: "standard",
+    4: "wide",
+    5: "standard",
+    6: "standard",
+    7: "tall",
   };
 
-  return LAYOUT[groupIndex];
+  const variant = VARIANTS[localIndex];
+  const groupClass = cycle === 0 ? `bento-item-g0-${localIndex}` : `bento-item-g1-${localIndex}`;
+  const sizeClass = `bento-item-${variant}`;
+
+  const res: {
+    variant: "large" | "wide" | "standard" | "tall";
+    className: string;
+    style?: React.CSSProperties;
+  } = {
+    variant,
+    className: `${groupClass} ${sizeClass}`,
+  };
+
+  if (cycle >= 1) {
+    res.style = {
+      "--base-row": 5 + 4 * (cycle - 1),
+    } as React.CSSProperties;
+  }
+
+  return res;
 }
 
 export default function ResultsList({
@@ -89,7 +108,11 @@ export default function ResultsList({
         {results.map((r, idx) => {
           const layout = getBentoLayout(idx);
           return (
-            <div key={`${r.perfume_name}-${r.brand}-${idx}`} className={layout.className}>
+            <div
+              key={`${r.perfume_name}-${r.brand}-${idx}`}
+              className={layout.className}
+              style={layout.style}
+            >
               <ResultCard
                 result={r}
                 variant={layout.variant}

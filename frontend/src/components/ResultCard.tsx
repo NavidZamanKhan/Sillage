@@ -11,7 +11,7 @@ import {
 
 interface ResultCardProps {
   result: PerfumeResult;
-  variant: "large" | "wide" | "small";
+  variant: "large" | "wide" | "standard" | "tall";
   color: CardColor;
   animationDelay?: number;
 }
@@ -31,10 +31,17 @@ export default function ResultCard({
   const sizeClass = `rec-card--${variant}`;
   const colorClass = `card-color-${color}`;
 
+  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(
+    (brand ? brand + " " : "") + (result.perfume_name || "Unknown")
+  )}`;
+
   return (
-    <article
+    <a
+      href={googleSearchUrl}
+      target="_blank"
+      rel="noopener noreferrer"
       className={`rec-card ${sizeClass} ${colorClass} fade-in-up`}
-      style={{ animationDelay: `${animationDelay}ms` }}
+      style={{ animationDelay: `${animationDelay}ms`, textDecoration: "none" }}
     >
       {/* Top row: brand + badge */}
       <div className="flex items-start justify-between gap-3">
@@ -55,14 +62,19 @@ export default function ResultCard({
       {/* Summary */}
       <p className="rec-card__summary">{summary}</p>
 
-      {/* Vibe chips */}
-      <div className="vibe-chips">
-        {chips.map((chip) => (
-          <span key={chip} className="vibe-chip">
-            {chip}
-          </span>
-        ))}
+      {/* Footer: Vibe chips + Explore */}
+      <div className="flex items-end justify-between mt-4 w-full">
+        <div className="vibe-chips">
+          {chips.map((chip) => (
+            <span key={chip} className="vibe-chip">
+              {chip}
+            </span>
+          ))}
+        </div>
+        <span className="rec-card__explore">
+          Explore ↗
+        </span>
       </div>
-    </article>
+    </a>
   );
 }

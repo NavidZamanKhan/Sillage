@@ -38,7 +38,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${inter.variable} ${playfair.variable} ${dmSerif.variable} min-h-screen font-[family-name:var(--font-inter)] antialiased`}
-        style={{ backgroundColor: "#f3f5ec", color: "#2c3e2d" }}
+        style={{ backgroundColor: "#fafaf8", color: "#2c3e2d" }}
       >
         {children}
       </body>
