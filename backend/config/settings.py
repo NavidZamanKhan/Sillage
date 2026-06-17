@@ -10,9 +10,7 @@ SECRET_KEY = "django-insecure-sillage-dev-key-change-in-production"
 
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    "sillage-2.onrender.com",
-]
+ALLOWED_HOSTS = ['sillage-production-3241.up.railway.app']
 
 INSTALLED_APPS = [
     "django.contrib.admin",
