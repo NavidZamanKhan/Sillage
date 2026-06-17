@@ -3,7 +3,9 @@
  * All calls to the Django backend go through this module.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://sillage-2.onrender.com";
 
 export interface PerfumeResult {
   index?: number;
