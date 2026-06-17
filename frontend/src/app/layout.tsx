@@ -24,7 +24,7 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Sillage — AI Perfume Recommendations",
+  title: "Sillage",
   description:
     "Describe a mood, a note, a season, or a vibe, and let Sillage hand-pick fragrances written just for you. AI-powered perfume discovery.",
 };
