@@ -79,6 +79,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://sillage-20.vercel.app",
+    "https://sillage-20-git-main-navidzamankhans-projects.vercel.app",
 ]
 
 # --- DRF ---
